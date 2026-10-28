@@ -1,26 +1,22 @@
 import javax.swing.JFrame;
+import javax.swing.SwingUtilities;
 
 public class Main{
 
-    public static void main(String[] args) throws Exception{
-        int rowCount = 21;
-        int columnCount = 19;
-        int tileSize = 32;
-        int boardWidth = columnCount * tileSize;
-        int boardHeight = columnCount * tileSize;
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(Main::createAndShowGame);
+    }
 
+    private static void createAndShowGame() {
         JFrame frame = new JFrame("Pac Man");
-        // frame.setVisable(true);
-        frame.setVisible(true);
-        frame.setSize(boardWidth, boardHeight);
         frame.setResizable(false);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         PacMan pacmanGame = new PacMan();
         frame.add(pacmanGame);
         frame.pack();
-        pacmanGame.requestFocus();
+        frame.setLocationRelativeTo(null);
         frame.setVisible(true);
-
+        pacmanGame.requestFocusInWindow();
     }
 }
