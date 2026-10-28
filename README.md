@@ -18,6 +18,7 @@ The game is being improved incrementally. Each feature is proposed, reviewed, an
 - Consistent Maven compilation and launch commands
 - Swing window creation on the event-dispatch thread
 - Responsive key-press controls with buffered turns at the next valid opening
+- Ready, playing, paused, and game-over states with explicit controls
 
 ## Controls
 
@@ -28,9 +29,15 @@ Use the arrow keys to change Pac-Man's direction:
 - Left Arrow: move left
 - Right Arrow: move right
 
+Additional controls:
+
+- Space: start the game from the ready screen
+- P: pause or resume active gameplay
+- R: reset the board, score, and lives, then return to the ready screen
+
 Arrow-key input is captured as soon as the key is pressed. If a requested turn is blocked, Pac-Man keeps moving in the current direction and performs the turn automatically at the next valid opening.
 
-After game over, release any key to restart.
+After game over, press R to reset the game, then press Space to start.
 
 ## Technology
 
@@ -85,7 +92,7 @@ Features will be proposed, approved, and implemented one at a time. The default 
 
 1. [x] Project cleanup and reliable build
 2. [x] Responsive controls and buffered turns
-3. Pause, restart, and start states
+3. [x] Pause, restart, and start states
 4. Tunnel wrapping
 5. Power pellets
 6. Frightened ghost mode
@@ -99,7 +106,7 @@ Features will be proposed, approved, and implemented one at a time. The default 
 14. Code structure refactor
 15. Automated tests
 
-Features 1 and 2 are complete. The remaining items have not been implemented yet. Completed items will be marked here and incorporated into the current-features documentation as development progresses.
+Features 1 through 3 are complete. The remaining items have not been implemented yet. Completed items will be marked here and incorporated into the current-features documentation as development progresses.
 
 ## Development workflow
 
