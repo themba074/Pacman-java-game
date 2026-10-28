@@ -95,7 +95,7 @@ Implement the following features in order unless the user explicitly approves a 
    - Provide documented keys for pausing and restarting.
 4. **Tunnel wrapping — completed**
    - Allow Pac-Man and ghosts to travel through the matching left and right tunnel entrances.
-5. **Power pellets**
+5. **Power pellets — completed**
    - Place power pellets on the map using the existing artwork.
    - Give them a distinct score value and temporary gameplay effect.
 6. **Frightened ghost mode**

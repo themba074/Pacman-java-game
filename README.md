@@ -20,6 +20,7 @@ The game is being improved incrementally. Each feature is proposed, reviewed, an
 - Responsive key-press controls with buffered turns at the next valid opening
 - Ready, playing, paused, and game-over states with explicit controls
 - Left and right tunnel wrapping for Pac-Man and ghosts
+- Four power pellets worth 50 points with a seven-second power-mode timer
 
 ## Controls
 
@@ -39,6 +40,10 @@ Additional controls:
 Arrow-key input is captured as soon as the key is pressed. If a requested turn is blocked, Pac-Man keeps moving in the current direction and performs the turn automatically at the next valid opening.
 
 After game over, press R to reset the game, then press Space to start.
+
+## Power pellets
+
+Four larger pellets appear near the maze corners. Each one awards 50 points and activates a seven-second power-mode countdown shown in the HUD. Power mode pauses with the game. Frightened ghost appearance and vulnerability are planned for Feature 6.
 
 ## Technology
 
@@ -95,7 +100,7 @@ Features will be proposed, approved, and implemented one at a time. The default 
 2. [x] Responsive controls and buffered turns
 3. [x] Pause, restart, and start states
 4. [x] Tunnel wrapping
-5. Power pellets
+5. [x] Power pellets
 6. Frightened ghost mode
 7. Ghost-eating bonuses
 8. Improved ghost behavior
@@ -107,7 +112,7 @@ Features will be proposed, approved, and implemented one at a time. The default 
 14. Code structure refactor
 15. Automated tests
 
-Features 1 through 4 are complete. The remaining items have not been implemented yet. Completed items will be marked here and incorporated into the current-features documentation as development progresses.
+Features 1 through 5 are complete. The remaining items have not been implemented yet. Completed items will be marked here and incorporated into the current-features documentation as development progresses.
 
 ## Development workflow
 
