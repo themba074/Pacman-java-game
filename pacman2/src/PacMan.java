@@ -5,6 +5,13 @@ import java.util.Random;
 import javax.swing.*;
 
 public class PacMan extends JPanel implements ActionListener, KeyListener {
+    enum GameState {
+        READY,
+        PLAYING,
+        PAUSED,
+        GAME_OVER
+    }
+
     class Block {
         int x;
         int y;
@@ -122,8 +129,8 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     Random random = new Random();
     int score = 0;
     int lives = 3;
-    boolean gameOver = false;
     char requestedDirection = '\0';
+    GameState gameState = GameState.READY;
 
     PacMan() {
         setPreferredSize(new Dimension(boardWidth, boardHeight));
@@ -218,14 +225,28 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         for (Block food : foods) {
             g.fillRect(food.x, food.y, food.width, food.height);
         }
-        //score
+        //score and game state
         g.setFont(new Font("Arial", Font.PLAIN, 18));
-        if (gameOver) {
-            g.drawString("Game Over: " + String.valueOf(score), tileSize/2, tileSize/2);
+        g.drawString("x" + String.valueOf(lives) + " Score: " + String.valueOf(score), tileSize/2, tileSize/2);
+
+        if (gameState == GameState.READY) {
+            drawCenteredMessage(g, "Press SPACE to start");
         }
-        else {
-            g.drawString("x" + String.valueOf(lives) + " Score: " + String.valueOf(score), tileSize/2, tileSize/2);
+        else if (gameState == GameState.PAUSED) {
+            drawCenteredMessage(g, "Paused - Press P to resume");
         }
+        else if (gameState == GameState.GAME_OVER) {
+            drawCenteredMessage(g, "Game Over: " + score + " - Press R to restart");
+        }
+    }
+
+    private void drawCenteredMessage(Graphics g, String message) {
+        g.setFont(new Font("Arial", Font.BOLD, 20));
+        FontMetrics metrics = g.getFontMetrics();
+        int x = (boardWidth - metrics.stringWidth(message))/2;
+        int y = boardHeight/2;
+        g.setColor(Color.YELLOW);
+        g.drawString(message, x, y);
     }
 
     public void move() {
@@ -248,7 +269,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             if (collision(ghost, pacman)) {
                 lives -= 1;
                 if (lives == 0) {
-                    gameOver = true;
+                    gameState = GameState.GAME_OVER;
                     return;
                 }
                 resetPositions();
@@ -283,6 +304,14 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             loadMap();
             resetPositions();
         }
+    }
+
+    private void resetGame() {
+        loadMap();
+        resetPositions();
+        lives = 3;
+        score = 0;
+        gameState = GameState.READY;
     }
 
     private void applyRequestedDirection() {
@@ -337,11 +366,10 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        move();
-        repaint();
-        if (gameOver) {
-            gameLoop.stop();
+        if (gameState == GameState.PLAYING) {
+            move();
         }
+        repaint();
     }
 
     @Override
@@ -349,7 +377,29 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
 
     @Override
     public void keyPressed(KeyEvent e) {
-        if (gameOver) {
+        if (e.getKeyCode() == KeyEvent.VK_R) {
+            resetGame();
+            return;
+        }
+
+        if (e.getKeyCode() == KeyEvent.VK_P) {
+            if (gameState == GameState.PLAYING) {
+                gameState = GameState.PAUSED;
+            }
+            else if (gameState == GameState.PAUSED) {
+                gameState = GameState.PLAYING;
+            }
+            return;
+        }
+
+        if (gameState == GameState.READY) {
+            if (e.getKeyCode() == KeyEvent.VK_SPACE) {
+                gameState = GameState.PLAYING;
+            }
+            return;
+        }
+
+        if (gameState != GameState.PLAYING) {
             return;
         }
 
@@ -368,14 +418,5 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     }
 
     @Override
-    public void keyReleased(KeyEvent e) {
-        if (gameOver) {
-            loadMap();
-            resetPositions();
-            lives = 3;
-            score = 0;
-            gameOver = false;
-            gameLoop.start();
-        }
-    }
+    public void keyReleased(KeyEvent e) {}
 }

@@ -90,7 +90,7 @@ Implement the following features in order unless the user explicitly approves a 
 2. **Responsive controls and buffered turns — completed**
    - Read movement input on key press.
    - Remember the player's requested direction and turn at the next valid opening.
-3. **Pause, restart, and start states**
+3. **Pause, restart, and start states — completed**
    - Add clear start, paused, playing, and game-over states.
    - Provide documented keys for pausing and restarting.
 4. **Tunnel wrapping**
