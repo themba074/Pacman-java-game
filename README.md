@@ -103,3 +103,5 @@ Feature 1 is complete. The remaining items have not been implemented yet. Comple
 Before code is changed, the proposed feature must be described with its scope, implementation approach, tradeoffs, and test plan. The user must explicitly approve that proposal. Only one approved feature is implemented at a time.
 
 Every completed feature must include a corresponding update to this README so that the documented features, controls, structure, and plans remain accurate.
+
+Each approved feature is developed on its own branch created from `main`, using a name such as `codex/feature-2-buffered-input`. The feature and its documentation are tested and committed on that branch. It is merged into `main` only after compilation and all relevant verification pass, keeping `main` stable and playable.
