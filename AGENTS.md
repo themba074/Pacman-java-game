@@ -87,7 +87,7 @@ Implement the following features in order unless the user explicitly approves a 
    - Remove duplicate or unused project files where safe.
    - Add `.gitignore` rules for IDE and compiled output.
    - Add a reproducible Maven or Gradle build.
-2. **Responsive controls and buffered turns**
+2. **Responsive controls and buffered turns — completed**
    - Read movement input on key press.
    - Remember the player's requested direction and turn at the next valid opening.
 3. **Pause, restart, and start states**

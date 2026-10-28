@@ -17,6 +17,7 @@ The game is being improved incrementally. Each feature is proposed, reviewed, an
 - A new board after all food pellets are collected
 - Consistent Maven compilation and launch commands
 - Swing window creation on the event-dispatch thread
+- Responsive key-press controls with buffered turns at the next valid opening
 
 ## Controls
 
@@ -27,7 +28,9 @@ Use the arrow keys to change Pac-Man's direction:
 - Left Arrow: move left
 - Right Arrow: move right
 
-After game over, release any key to restart. Direction changes currently happen when an arrow key is released.
+Arrow-key input is captured as soon as the key is pressed. If a requested turn is blocked, Pac-Man keeps moving in the current direction and performs the turn automatically at the next valid opening.
+
+After game over, release any key to restart.
 
 ## Technology
 
@@ -81,7 +84,7 @@ The image files must remain available on the runtime classpath alongside the com
 Features will be proposed, approved, and implemented one at a time. The default order is:
 
 1. [x] Project cleanup and reliable build
-2. Responsive controls and buffered turns
+2. [x] Responsive controls and buffered turns
 3. Pause, restart, and start states
 4. Tunnel wrapping
 5. Power pellets
@@ -96,7 +99,7 @@ Features will be proposed, approved, and implemented one at a time. The default 
 14. Code structure refactor
 15. Automated tests
 
-Feature 1 is complete. The remaining items have not been implemented yet. Completed items will be marked here and incorporated into the current-features documentation as development progresses.
+Features 1 and 2 are complete. The remaining items have not been implemented yet. Completed items will be marked here and incorporated into the current-features documentation as development progresses.
 
 ## Development workflow
 

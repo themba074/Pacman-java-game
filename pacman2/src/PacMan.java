@@ -123,6 +123,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     int score = 0;
     int lives = 3;
     boolean gameOver = false;
+    char requestedDirection = '\0';
 
     PacMan() {
         setPreferredSize(new Dimension(boardWidth, boardHeight));
@@ -228,6 +229,8 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     }
 
     public void move() {
+        applyRequestedDirection();
+
         pacman.x += pacman.velocityX;
         pacman.y += pacman.velocityY;
 
@@ -282,6 +285,37 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         }
     }
 
+    private void applyRequestedDirection() {
+        if (requestedDirection == '\0') {
+            return;
+        }
+
+        int previousX = pacman.x;
+        int previousY = pacman.y;
+        pacman.updateDirection(requestedDirection);
+        pacman.x = previousX;
+        pacman.y = previousY;
+
+        if (pacman.direction == requestedDirection) {
+            updatePacmanImage();
+        }
+    }
+
+    private void updatePacmanImage() {
+        if (pacman.direction == 'U') {
+            pacman.image = pacmanUpImage;
+        }
+        else if (pacman.direction == 'D') {
+            pacman.image = pacmanDownImage;
+        }
+        else if (pacman.direction == 'L') {
+            pacman.image = pacmanLeftImage;
+        }
+        else if (pacman.direction == 'R') {
+            pacman.image = pacmanRightImage;
+        }
+    }
+
     public boolean collision(Block a, Block b) {
         return  a.x < b.x + b.width &&
                 a.x + a.width > b.x &&
@@ -293,6 +327,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         pacman.reset();
         pacman.velocityX = 0;
         pacman.velocityY = 0;
+        requestedDirection = '\0';
         for (Block ghost : ghosts) {
             ghost.reset();
             char newDirection = directions[random.nextInt(4)];
@@ -313,7 +348,24 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     public void keyTyped(KeyEvent e) {}
 
     @Override
-    public void keyPressed(KeyEvent e) {}
+    public void keyPressed(KeyEvent e) {
+        if (gameOver) {
+            return;
+        }
+
+        if (e.getKeyCode() == KeyEvent.VK_UP) {
+            requestedDirection = 'U';
+        }
+        else if (e.getKeyCode() == KeyEvent.VK_DOWN) {
+            requestedDirection = 'D';
+        }
+        else if (e.getKeyCode() == KeyEvent.VK_LEFT) {
+            requestedDirection = 'L';
+        }
+        else if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
+            requestedDirection = 'R';
+        }
+    }
 
     @Override
     public void keyReleased(KeyEvent e) {
@@ -324,32 +376,6 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             score = 0;
             gameOver = false;
             gameLoop.start();
-        }
-        // System.out.println("KeyEvent: " + e.getKeyCode());
-        if (e.getKeyCode() == KeyEvent.VK_UP) {
-            pacman.updateDirection('U');
-        }
-        else if (e.getKeyCode() == KeyEvent.VK_DOWN) {
-            pacman.updateDirection('D');
-        }
-        else if (e.getKeyCode() == KeyEvent.VK_LEFT) {
-            pacman.updateDirection('L');
-        }
-        else if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
-            pacman.updateDirection('R');
-        }
-
-        if (pacman.direction == 'U') {
-            pacman.image = pacmanUpImage;
-        }
-        else if (pacman.direction == 'D') {
-            pacman.image = pacmanDownImage;
-        }
-        else if (pacman.direction == 'L') {
-            pacman.image = pacmanLeftImage;
-        }
-        else if (pacman.direction == 'R') {
-            pacman.image = pacmanRightImage;
         }
     }
 }
