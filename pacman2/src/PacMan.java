@@ -81,6 +81,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     private int tileSize = 32;
     private int boardWidth = columnCount * tileSize;
     private int boardHeight = rowCount * tileSize;
+    private int tunnelRow = 9;
 
     private Image wallImage;
     private Image blueGhostImage;
@@ -254,6 +255,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
 
         pacman.x += pacman.velocityX;
         pacman.y += pacman.velocityY;
+        wrapThroughTunnel(pacman);
 
         //check wall collisions
         for (Block wall : walls) {
@@ -275,13 +277,14 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                 resetPositions();
             }
 
-            if (ghost.y == tileSize*9 && ghost.direction != 'U' && ghost.direction != 'D') {
+            if (ghost.y == tileSize*tunnelRow && ghost.direction != 'U' && ghost.direction != 'D') {
                 ghost.updateDirection('U');
             }
             ghost.x += ghost.velocityX;
             ghost.y += ghost.velocityY;
+            wrapThroughTunnel(ghost);
             for (Block wall : walls) {
-                if (collision(ghost, wall) || ghost.x <= 0 || ghost.x + ghost.width >= boardWidth) {
+                if (collision(ghost, wall) || hitsHorizontalBoundaryOutsideTunnel(ghost)) {
                     ghost.x -= ghost.velocityX;
                     ghost.y -= ghost.velocityY;
                     char newDirection = directions[random.nextInt(4)];
@@ -304,6 +307,24 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             loadMap();
             resetPositions();
         }
+    }
+
+    private void wrapThroughTunnel(Block block) {
+        if (block.y != tunnelRow*tileSize) {
+            return;
+        }
+
+        if (block.x + block.width <= 0) {
+            block.x = boardWidth;
+        }
+        else if (block.x >= boardWidth) {
+            block.x = -block.width;
+        }
+    }
+
+    private boolean hitsHorizontalBoundaryOutsideTunnel(Block block) {
+        return block.y != tunnelRow*tileSize &&
+                (block.x <= 0 || block.x + block.width >= boardWidth);
     }
 
     private void resetGame() {

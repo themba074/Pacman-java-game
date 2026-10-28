@@ -19,6 +19,7 @@ The game is being improved incrementally. Each feature is proposed, reviewed, an
 - Swing window creation on the event-dispatch thread
 - Responsive key-press controls with buffered turns at the next valid opening
 - Ready, playing, paused, and game-over states with explicit controls
+- Left and right tunnel wrapping for Pac-Man and ghosts
 
 ## Controls
 
@@ -93,7 +94,7 @@ Features will be proposed, approved, and implemented one at a time. The default 
 1. [x] Project cleanup and reliable build
 2. [x] Responsive controls and buffered turns
 3. [x] Pause, restart, and start states
-4. Tunnel wrapping
+4. [x] Tunnel wrapping
 5. Power pellets
 6. Frightened ghost mode
 7. Ghost-eating bonuses
@@ -106,7 +107,7 @@ Features will be proposed, approved, and implemented one at a time. The default 
 14. Code structure refactor
 15. Automated tests
 
-Features 1 through 3 are complete. The remaining items have not been implemented yet. Completed items will be marked here and incorporated into the current-features documentation as development progresses.
+Features 1 through 4 are complete. The remaining items have not been implemented yet. Completed items will be marked here and incorporated into the current-features documentation as development progresses.
 
 ## Development workflow
 
