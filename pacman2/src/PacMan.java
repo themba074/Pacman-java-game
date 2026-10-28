@@ -88,19 +88,20 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     private Image orangeGhostImage;
     private Image pinkGhostImage;
     private Image redGhostImage;
+    private Image powerFoodImage;
 
     private Image pacmanUpImage;
     private Image pacmanDownImage;
     private Image pacmanLeftImage;
     private Image pacmanRightImage;
 
-    //X = wall, O = skip, P = pac man, ' ' = food
+    //X = wall, O = skip, P = pac man, Q = power pellet, ' ' = food
     //Ghosts: b = blue, o = orange, p = pink, r = red
     private String[] tileMap = {
             "XXXXXXXXXXXXXXXXXXX",
             "X        X        X",
             "X XX XXX X XXX XX X",
-            "X                 X",
+            "XQ               QX",
             "X XX X XXXXX X XX X",
             "X    X       X    X",
             "XXXX XXXX XXXX XXXX",
@@ -116,12 +117,13 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             "XX X X XXXXX X X XX",
             "X    X   X   X    X",
             "X XXXXXX X XXXXXX X",
-            "X                 X",
+            "XQ               QX",
             "XXXXXXXXXXXXXXXXXXX"
     };
 
     HashSet<Block> walls;
     HashSet<Block> foods;
+    HashSet<Block> powerPellets;
     HashSet<Block> ghosts;
     Block pacman;
 
@@ -132,6 +134,8 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     int lives = 3;
     char requestedDirection = '\0';
     GameState gameState = GameState.READY;
+    int powerModeTimeRemaining = 0;
+    private int powerModeDuration = 7000;
 
     PacMan() {
         setPreferredSize(new Dimension(boardWidth, boardHeight));
@@ -145,6 +149,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         orangeGhostImage = new ImageIcon(getClass().getResource("./orangeGhost.png")).getImage();
         pinkGhostImage = new ImageIcon(getClass().getResource("./pinkGhost.png")).getImage();
         redGhostImage = new ImageIcon(getClass().getResource("./redGhost.png")).getImage();
+        powerFoodImage = new ImageIcon(getClass().getResource("./powerFood.png")).getImage();
 
         pacmanUpImage = new ImageIcon(getClass().getResource("./pacmanUp.png")).getImage();
         pacmanDownImage = new ImageIcon(getClass().getResource("./pacmanDown.png")).getImage();
@@ -165,6 +170,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     public void loadMap() {
         walls = new HashSet<Block>();
         foods = new HashSet<Block>();
+        powerPellets = new HashSet<Block>();
         ghosts = new HashSet<Block>();
 
         for (int r = 0; r < rowCount; r++) {
@@ -198,6 +204,10 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                 else if (tileMapChar == 'P') { //pacman
                     pacman = new Block(pacmanRightImage, x, y, tileSize, tileSize);
                 }
+                else if (tileMapChar == 'Q') { //power pellet
+                    Block powerPellet = new Block(powerFoodImage, x + 8, y + 8, tileSize/2, tileSize/2);
+                    powerPellets.add(powerPellet);
+                }
                 else if (tileMapChar == ' ') { //food
                     Block food = new Block(null, x + 14, y + 14, 4, 4);
                     foods.add(food);
@@ -226,9 +236,19 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         for (Block food : foods) {
             g.fillRect(food.x, food.y, food.width, food.height);
         }
+
+        for (Block powerPellet : powerPellets) {
+            g.drawImage(powerPellet.image, powerPellet.x, powerPellet.y,
+                    powerPellet.width, powerPellet.height, null);
+        }
         //score and game state
         g.setFont(new Font("Arial", Font.PLAIN, 18));
-        g.drawString("x" + String.valueOf(lives) + " Score: " + String.valueOf(score), tileSize/2, tileSize/2);
+        String gameStatus = "x" + lives + " Score: " + score;
+        if (powerModeTimeRemaining > 0) {
+            int secondsRemaining = (powerModeTimeRemaining + 999)/1000;
+            gameStatus += " Power: " + secondsRemaining + "s";
+        }
+        g.drawString(gameStatus, tileSize/2, tileSize/2);
 
         if (gameState == GameState.READY) {
             drawCenteredMessage(g, "Press SPACE to start");
@@ -251,6 +271,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     }
 
     public void move() {
+        updatePowerModeTimer();
         applyRequestedDirection();
 
         pacman.x += pacman.velocityX;
@@ -303,9 +324,25 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         }
         foods.remove(foodEaten);
 
-        if (foods.isEmpty()) {
+        Block powerPelletEaten = null;
+        for (Block powerPellet : powerPellets) {
+            if (collision(pacman, powerPellet)) {
+                powerPelletEaten = powerPellet;
+                score += 50;
+                powerModeTimeRemaining = powerModeDuration;
+            }
+        }
+        powerPellets.remove(powerPelletEaten);
+
+        if (foods.isEmpty() && powerPellets.isEmpty()) {
             loadMap();
             resetPositions();
+        }
+    }
+
+    private void updatePowerModeTimer() {
+        if (powerModeTimeRemaining > 0) {
+            powerModeTimeRemaining = Math.max(0, powerModeTimeRemaining - gameLoop.getDelay());
         }
     }
 
@@ -378,6 +415,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         pacman.velocityX = 0;
         pacman.velocityY = 0;
         requestedDirection = '\0';
+        powerModeTimeRemaining = 0;
         for (Block ghost : ghosts) {
             ghost.reset();
             char newDirection = directions[random.nextInt(4)];
