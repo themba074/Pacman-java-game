@@ -93,7 +93,7 @@ Implement the following features in order unless the user explicitly approves a 
 3. **Pause, restart, and start states — completed**
    - Add clear start, paused, playing, and game-over states.
    - Provide documented keys for pausing and restarting.
-4. **Tunnel wrapping**
+4. **Tunnel wrapping — completed**
    - Allow Pac-Man and ghosts to travel through the matching left and right tunnel entrances.
 5. **Power pellets**
    - Place power pellets on the map using the existing artwork.
