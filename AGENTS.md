@@ -110,7 +110,7 @@ Implement the following features in order unless the user explicitly approves a 
    - Keep each ghost's behavior testable and distinct where practical.
 9. **Character animation — completed**
    - Animate Pac-Man's mouth and relevant ghost states without changing movement speed.
-10. **Cherry and bonus items**
+10. **Cherry and bonus items — completed**
     - Spawn a timed bonus item based on level progress.
     - Use the existing cherry artwork and award a documented score bonus.
 11. **Sound effects and music**
