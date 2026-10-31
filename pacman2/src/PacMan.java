@@ -110,6 +110,8 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     private Image redGhostImage;
     private Image scaredGhostImage;
     private Image powerFoodImage;
+    private Image cherryImage;
+    private Image cherry2Image;
 
     private Image pacmanUpImage;
     private Image pacmanDownImage;
@@ -170,6 +172,15 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     int frightenedFlashTime = 0;
     private int frightenedFlashThreshold = 2000;
     private int frightenedFlashFrameDuration = 200;
+    Block bonusItem;
+    int bonusItemTimeRemaining = 0;
+    int bonusItemScore = 0;
+    int pelletsEatenThisLevel = 0;
+    boolean firstBonusSpawned = false;
+    boolean secondBonusSpawned = false;
+    private int bonusItemDuration = 10000;
+    private int firstBonusThreshold = 70;
+    private int secondBonusThreshold = 170;
 
     PacMan() {
         setPreferredSize(new Dimension(boardWidth, boardHeight));
@@ -185,6 +196,8 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         redGhostImage = new ImageIcon(getClass().getResource("./redGhost.png")).getImage();
         scaredGhostImage = new ImageIcon(getClass().getResource("./scaredGhost.png")).getImage();
         powerFoodImage = new ImageIcon(getClass().getResource("./powerFood.png")).getImage();
+        cherryImage = new ImageIcon(getClass().getResource("./cherry.png")).getImage();
+        cherry2Image = new ImageIcon(getClass().getResource("./cherry2.png")).getImage();
 
         pacmanUpImage = new ImageIcon(getClass().getResource("./pacmanUp.png")).getImage();
         pacmanDownImage = new ImageIcon(getClass().getResource("./pacmanDown.png")).getImage();
@@ -217,6 +230,10 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         foods = new HashSet<Block>();
         powerPellets = new HashSet<Block>();
         ghosts = new HashSet<Block>();
+        pelletsEatenThisLevel = 0;
+        firstBonusSpawned = false;
+        secondBonusSpawned = false;
+        clearBonusItem();
 
         for (int r = 0; r < rowCount; r++) {
             for (int c = 0; c < columnCount; c++) {
@@ -291,6 +308,10 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             g.drawImage(powerPellet.image, powerPellet.x, powerPellet.y,
                     powerPellet.width, powerPellet.height, null);
         }
+        if (bonusItem != null) {
+            g.drawImage(bonusItem.image, bonusItem.x, bonusItem.y,
+                    bonusItem.width, bonusItem.height, null);
+        }
         //score and game state
         g.setFont(new Font("Arial", Font.PLAIN, 18));
         String gameStatus = "x" + lives + " Score: " + score;
@@ -323,6 +344,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     public void move() {
         updatePowerModeTimer();
         updateGhostModeTimer();
+        updateBonusItemTimer();
         applyRequestedDirection();
 
         pacman.x += pacman.velocityX;
@@ -378,6 +400,9 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             }
         }
         foods.remove(foodEaten);
+        if (foodEaten != null) {
+            recordPelletCollected();
+        }
 
         Block powerPelletEaten = null;
         for (Block powerPellet : powerPellets) {
@@ -389,11 +414,54 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             }
         }
         powerPellets.remove(powerPelletEaten);
+        if (powerPelletEaten != null) {
+            recordPelletCollected();
+        }
+
+        if (bonusItem != null && collision(pacman, bonusItem)) {
+            score += bonusItemScore;
+            clearBonusItem();
+        }
 
         if (foods.isEmpty() && powerPellets.isEmpty()) {
             loadMap();
             resetPositions();
         }
+    }
+
+    private void updateBonusItemTimer() {
+        if (bonusItem == null) {
+            return;
+        }
+
+        bonusItemTimeRemaining = Math.max(0, bonusItemTimeRemaining - gameLoop.getDelay());
+        if (bonusItemTimeRemaining == 0) {
+            clearBonusItem();
+        }
+    }
+
+    private void recordPelletCollected() {
+        pelletsEatenThisLevel += 1;
+        if (!secondBonusSpawned && pelletsEatenThisLevel >= secondBonusThreshold) {
+            secondBonusSpawned = true;
+            spawnBonusItem(cherry2Image, 300);
+        }
+        else if (!firstBonusSpawned && pelletsEatenThisLevel >= firstBonusThreshold) {
+            firstBonusSpawned = true;
+            spawnBonusItem(cherryImage, 100);
+        }
+    }
+
+    private void spawnBonusItem(Image image, int scoreValue) {
+        bonusItem = new Block(image, tileSize*9, tileSize*11, tileSize, tileSize);
+        bonusItemScore = scoreValue;
+        bonusItemTimeRemaining = bonusItemDuration;
+    }
+
+    private void clearBonusItem() {
+        bonusItem = null;
+        bonusItemScore = 0;
+        bonusItemTimeRemaining = 0;
     }
 
     private void updatePowerModeTimer() {

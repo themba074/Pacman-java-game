@@ -25,6 +25,7 @@ The game is being improved incrementally. Each feature is proposed, reviewed, an
 - Consecutive frightened-ghost bonuses worth 200, 400, 800, and 1,600 points
 - Distinct ghost targeting with alternating scatter and chase modes
 - Animated Pac-Man movement and a flashing frightened-mode expiry warning
+- Timed cherry bonuses tied to pellet collection progress
 
 ## Controls
 
@@ -56,6 +57,10 @@ Ghosts alternate between seven-second scatter periods and 20-second chase period
 ## Character animation
 
 Pac-Man alternates between the directional open-mouth sprite and a closed-mouth frame every 150 milliseconds while moving. The mouth stays open while stationary. During the final two seconds of power mode, frightened ghosts flash every 200 milliseconds as an expiry warning. Animation freezes while the game is paused and does not affect movement speed or collision state.
+
+## Bonus items
+
+A 100-point cherry appears below the ghost house after 70 pellets are collected. A second bonus using the alternate cherry artwork appears after 170 pellets and is worth 300 points. Each bonus remains for ten seconds, and each can spawn only once per level. The timer freezes while paused. Collection, expiry, restart, or level completion clears the active bonus as appropriate.
 
 ## Technology
 
@@ -117,14 +122,14 @@ Features will be proposed, approved, and implemented one at a time. The default 
 7. [x] Ghost-eating bonuses
 8. [x] Improved ghost behavior
 9. [x] Character animation
-10. Cherry and bonus items
+10. [x] Cherry and bonus items
 11. Sound effects and music
 12. Levels and difficulty progression
 13. High-score persistence
 14. Code structure refactor
 15. Automated tests
 
-Features 1 through 9 are complete. The remaining items have not been implemented yet. Completed items will be marked here and incorporated into the current-features documentation as development progresses.
+Features 1 through 10 are complete. The remaining items have not been implemented yet. Completed items will be marked here and incorporated into the current-features documentation as development progresses.
 
 ## Development workflow
 
