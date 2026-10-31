@@ -181,8 +181,14 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     private int bonusItemDuration = 10000;
     private int firstBonusThreshold = 70;
     private int secondBonusThreshold = 170;
+    SoundManager soundManager;
 
     PacMan() {
+        this(new SoundManager());
+    }
+
+    PacMan(SoundManager soundManager) {
+        this.soundManager = soundManager;
         setPreferredSize(new Dimension(boardWidth, boardHeight));
         setBackground(Color.BLACK);
         addKeyListener(this);
@@ -319,6 +325,9 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             int secondsRemaining = (powerModeTimeRemaining + 999)/1000;
             gameStatus += " Power: " + secondsRemaining + "s";
         }
+        if (soundManager.isMuted()) {
+            gameStatus += " Muted";
+        }
         g.drawString(gameStatus, tileSize/2, tileSize/2);
 
         if (gameState == GameState.READY) {
@@ -371,8 +380,11 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                     lives -= 1;
                     if (lives == 0) {
                         gameState = GameState.GAME_OVER;
+                        soundManager.playEffect(SoundManager.SoundEffect.GAME_OVER);
+                        soundManager.setBackgroundPlaying(false);
                         return;
                     }
+                    soundManager.playEffect(SoundManager.SoundEffect.LIFE_LOST);
                     resetPositions();
                 }
             }
@@ -401,6 +413,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         }
         foods.remove(foodEaten);
         if (foodEaten != null) {
+            soundManager.playEffect(SoundManager.SoundEffect.PELLET);
             recordPelletCollected();
         }
 
@@ -415,15 +428,18 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         }
         powerPellets.remove(powerPelletEaten);
         if (powerPelletEaten != null) {
+            soundManager.playEffect(SoundManager.SoundEffect.POWER_PELLET);
             recordPelletCollected();
         }
 
         if (bonusItem != null && collision(pacman, bonusItem)) {
             score += bonusItemScore;
+            soundManager.playEffect(SoundManager.SoundEffect.BONUS);
             clearBonusItem();
         }
 
         if (foods.isEmpty() && powerPellets.isEmpty()) {
+            soundManager.playEffect(SoundManager.SoundEffect.LEVEL_COMPLETE);
             loadMap();
             resetPositions();
         }
@@ -693,6 +709,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         int bonusMultiplier = 1 << Math.min(ghostsEatenThisPowerMode, 3);
         score += 200*bonusMultiplier;
         ghostsEatenThisPowerMode += 1;
+        soundManager.playEffect(SoundManager.SoundEffect.GHOST_EATEN);
 
         ghost.frightened = false;
         ghost.eatenDuringPowerMode = true;
@@ -764,6 +781,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     }
 
     private void resetGame() {
+        soundManager.setBackgroundPlaying(false);
         loadMap();
         resetPositions();
         lives = 3;
@@ -845,6 +863,11 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
 
     @Override
     public void keyPressed(KeyEvent e) {
+        if (e.getKeyCode() == KeyEvent.VK_M) {
+            soundManager.toggleMute();
+            return;
+        }
+
         if (e.getKeyCode() == KeyEvent.VK_R) {
             resetGame();
             return;
@@ -853,9 +876,11 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         if (e.getKeyCode() == KeyEvent.VK_P) {
             if (gameState == GameState.PLAYING) {
                 gameState = GameState.PAUSED;
+                soundManager.setBackgroundPlaying(false);
             }
             else if (gameState == GameState.PAUSED) {
                 gameState = GameState.PLAYING;
+                soundManager.setBackgroundPlaying(true);
             }
             return;
         }
@@ -863,6 +888,8 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         if (gameState == GameState.READY) {
             if (e.getKeyCode() == KeyEvent.VK_SPACE) {
                 gameState = GameState.PLAYING;
+                soundManager.playEffect(SoundManager.SoundEffect.START);
+                soundManager.setBackgroundPlaying(true);
             }
             return;
         }
