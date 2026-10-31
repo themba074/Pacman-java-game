@@ -98,7 +98,7 @@ Implement the following features in order unless the user explicitly approves a 
 5. **Power pellets — completed**
    - Place power pellets on the map using the existing artwork.
    - Give them a distinct score value and temporary gameplay effect.
-6. **Frightened ghost mode**
+6. **Frightened ghost mode — completed**
    - Change ghosts to the scared sprite while a power pellet is active.
    - Make frightened ghosts vulnerable and restore them when the timer expires.
 7. **Ghost-eating bonuses**
