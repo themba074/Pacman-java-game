@@ -1,6 +1,8 @@
 import java.awt.*;
 import java.awt.event.*;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Random;
 import javax.swing.*;
 
@@ -10,6 +12,18 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         PLAYING,
         PAUSED,
         GAME_OVER
+    }
+
+    enum GhostType {
+        BLUE,
+        ORANGE,
+        PINK,
+        RED
+    }
+
+    enum GhostMode {
+        SCATTER,
+        CHASE
     }
 
     class Block {
@@ -27,6 +41,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         int velocityY = 0;
         boolean frightened = false;
         boolean eatenDuringPowerMode = false;
+        GhostType ghostType;
 
         Block(Image image, int x, int y, int width, int height) {
             this.image = image;
@@ -142,6 +157,10 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     int powerModeTimeRemaining = 0;
     int ghostsEatenThisPowerMode = 0;
     private int powerModeDuration = 7000;
+    GhostMode ghostMode = GhostMode.SCATTER;
+    int ghostModeTimeRemaining = 7000;
+    private int scatterModeDuration = 7000;
+    private int chaseModeDuration = 20000;
 
     PacMan() {
         setPreferredSize(new Dimension(boardWidth, boardHeight));
@@ -166,7 +185,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         loadMap();
         for (Block ghost : ghosts) {
             char newDirection = directions[random.nextInt(4)];
-            ghost.updateDirection(newDirection);
+            setGhostDirection(ghost, newDirection);
         }
         //how long it takes to start timer, milliseconds gone between frames
         gameLoop = new Timer(50, this); //20fps (1000/50)
@@ -194,18 +213,22 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                 }
                 else if (tileMapChar == 'b') { //blue ghost
                     Block ghost = new Block(blueGhostImage, x, y, tileSize, tileSize);
+                    ghost.ghostType = GhostType.BLUE;
                     ghosts.add(ghost);
                 }
                 else if (tileMapChar == 'o') { //orange ghost
                     Block ghost = new Block(orangeGhostImage, x, y, tileSize, tileSize);
+                    ghost.ghostType = GhostType.ORANGE;
                     ghosts.add(ghost);
                 }
                 else if (tileMapChar == 'p') { //pink ghost
                     Block ghost = new Block(pinkGhostImage, x, y, tileSize, tileSize);
+                    ghost.ghostType = GhostType.PINK;
                     ghosts.add(ghost);
                 }
                 else if (tileMapChar == 'r') { //red ghost
                     Block ghost = new Block(redGhostImage, x, y, tileSize, tileSize);
+                    ghost.ghostType = GhostType.RED;
                     ghosts.add(ghost);
                 }
                 else if (tileMapChar == 'P') { //pacman
@@ -279,6 +302,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
 
     public void move() {
         updatePowerModeTimer();
+        updateGhostModeTimer();
         applyRequestedDirection();
 
         pacman.x += pacman.velocityX;
@@ -311,9 +335,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                 }
             }
 
-            if (ghost.y == tileSize*tunnelRow && ghost.direction != 'U' && ghost.direction != 'D') {
-                ghost.updateDirection('U');
-            }
+            updateGhostDirectionAtIntersection(ghost);
             ghost.x += ghost.velocityX;
             ghost.y += ghost.velocityY;
             wrapThroughTunnel(ghost);
@@ -321,8 +343,8 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                 if (collision(ghost, wall) || hitsHorizontalBoundaryOutsideTunnel(ghost)) {
                     ghost.x -= ghost.velocityX;
                     ghost.y -= ghost.velocityY;
-                    char newDirection = directions[random.nextInt(4)];
-                    ghost.updateDirection(newDirection);
+                    setGhostDirection(ghost, chooseGhostDirection(ghost));
+                    break;
                 }
             }
         }
@@ -363,6 +385,211 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         }
     }
 
+    private void updateGhostModeTimer() {
+        if (powerModeTimeRemaining > 0) {
+            return;
+        }
+
+        ghostModeTimeRemaining -= gameLoop.getDelay();
+        if (ghostModeTimeRemaining <= 0) {
+            if (ghostMode == GhostMode.SCATTER) {
+                ghostMode = GhostMode.CHASE;
+                ghostModeTimeRemaining = chaseModeDuration;
+            }
+            else {
+                ghostMode = GhostMode.SCATTER;
+                ghostModeTimeRemaining = scatterModeDuration;
+            }
+        }
+    }
+
+    private void updateGhostDirectionAtIntersection(Block ghost) {
+        if (!isTileAligned(ghost)) {
+            return;
+        }
+
+        boolean insideGhostHouse = ghost.y == tileSize*tunnelRow &&
+                ghost.x >= tileSize*8 && ghost.x <= tileSize*10;
+        boolean movingHorizontally = ghost.direction == 'L' || ghost.direction == 'R';
+        if (insideGhostHouse && movingHorizontally && canMove(ghost, 'U')) {
+            setGhostDirection(ghost, 'U');
+            return;
+        }
+
+        setGhostDirection(ghost, chooseGhostDirection(ghost));
+    }
+
+    private char chooseGhostDirection(Block ghost) {
+        List<Character> validDirections = getValidGhostDirections(ghost);
+        if (validDirections.isEmpty()) {
+            return ghost.direction;
+        }
+
+        char reverseDirection = reverseDirection(ghost.direction);
+        if (validDirections.size() > 1) {
+            validDirections.remove(Character.valueOf(reverseDirection));
+        }
+
+        if (ghost.frightened) {
+            return validDirections.get(random.nextInt(validDirections.size()));
+        }
+
+        int[] target = getGhostTarget(ghost);
+        char bestDirection = validDirections.get(0);
+        long bestDistance = Long.MAX_VALUE;
+        for (char direction : validDirections) {
+            int nextX = ghost.x + directionDeltaX(direction);
+            int nextY = ghost.y + directionDeltaY(direction);
+            long deltaX = target[0] - nextX;
+            long deltaY = target[1] - nextY;
+            long distance = deltaX*deltaX + deltaY*deltaY;
+            if (distance < bestDistance) {
+                bestDistance = distance;
+                bestDirection = direction;
+            }
+        }
+        return bestDirection;
+    }
+
+    private List<Character> getValidGhostDirections(Block ghost) {
+        char[] directionPriority = {'U', 'L', 'D', 'R'};
+        List<Character> validDirections = new ArrayList<>();
+        for (char direction : directionPriority) {
+            if (canMove(ghost, direction)) {
+                validDirections.add(direction);
+            }
+        }
+        return validDirections;
+    }
+
+    private boolean canMove(Block block, char direction) {
+        boolean outsideTunnel = block.x < 0 || block.x + block.width > boardWidth;
+        if (outsideTunnel && direction != 'L' && direction != 'R') {
+            return false;
+        }
+
+        int previousX = block.x;
+        int previousY = block.y;
+        block.x += directionDeltaX(direction);
+        block.y += directionDeltaY(direction);
+        wrapThroughTunnel(block);
+
+        boolean blocked = hitsHorizontalBoundaryOutsideTunnel(block);
+        if (!blocked) {
+            for (Block wall : walls) {
+                if (collision(block, wall)) {
+                    blocked = true;
+                    break;
+                }
+            }
+        }
+
+        block.x = previousX;
+        block.y = previousY;
+        return !blocked;
+    }
+
+    private int[] getGhostTarget(Block ghost) {
+        if (ghostMode == GhostMode.SCATTER) {
+            return getScatterTarget(ghost.ghostType);
+        }
+
+        if (ghost.ghostType == GhostType.RED) {
+            return new int[] {pacman.x, pacman.y};
+        }
+        if (ghost.ghostType == GhostType.PINK) {
+            return getPacmanAheadTarget(4);
+        }
+        if (ghost.ghostType == GhostType.BLUE) {
+            int[] aheadTarget = getPacmanAheadTarget(2);
+            Block redGhost = findGhost(GhostType.RED);
+            if (redGhost == null) {
+                return aheadTarget;
+            }
+            return new int[] {
+                    aheadTarget[0] + (aheadTarget[0] - redGhost.x),
+                    aheadTarget[1] + (aheadTarget[1] - redGhost.y)
+            };
+        }
+
+        long deltaX = pacman.x - ghost.x;
+        long deltaY = pacman.y - ghost.y;
+        long chaseDistance = 8L*tileSize;
+        if (deltaX*deltaX + deltaY*deltaY > chaseDistance*chaseDistance) {
+            return new int[] {pacman.x, pacman.y};
+        }
+        return getScatterTarget(GhostType.ORANGE);
+    }
+
+    private int[] getScatterTarget(GhostType ghostType) {
+        if (ghostType == GhostType.RED) {
+            return new int[] {boardWidth, 0};
+        }
+        if (ghostType == GhostType.PINK) {
+            return new int[] {0, 0};
+        }
+        if (ghostType == GhostType.BLUE) {
+            return new int[] {boardWidth, boardHeight};
+        }
+        return new int[] {0, boardHeight};
+    }
+
+    private int[] getPacmanAheadTarget(int tilesAhead) {
+        return new int[] {
+                pacman.x + directionTileDeltaX(pacman.direction)*tilesAhead,
+                pacman.y + directionTileDeltaY(pacman.direction)*tilesAhead
+        };
+    }
+
+    private Block findGhost(GhostType ghostType) {
+        for (Block ghost : ghosts) {
+            if (ghost.ghostType == ghostType) {
+                return ghost;
+            }
+        }
+        return null;
+    }
+
+    private boolean isTileAligned(Block block) {
+        return block.x%tileSize == 0 && block.y%tileSize == 0;
+    }
+
+    private void setGhostDirection(Block ghost, char direction) {
+        ghost.direction = direction;
+        ghost.updateVelocity();
+    }
+
+    private char reverseDirection(char direction) {
+        if (direction == 'U') return 'D';
+        if (direction == 'D') return 'U';
+        if (direction == 'L') return 'R';
+        return 'L';
+    }
+
+    private int directionDeltaX(char direction) {
+        if (direction == 'L') return -tileSize/4;
+        if (direction == 'R') return tileSize/4;
+        return 0;
+    }
+
+    private int directionDeltaY(char direction) {
+        if (direction == 'U') return -tileSize/4;
+        if (direction == 'D') return tileSize/4;
+        return 0;
+    }
+
+    private int directionTileDeltaX(char direction) {
+        if (direction == 'L') return -tileSize;
+        if (direction == 'R') return tileSize;
+        return 0;
+    }
+
+    private int directionTileDeltaY(char direction) {
+        if (direction == 'U') return -tileSize;
+        if (direction == 'D') return tileSize;
+        return 0;
+    }
+
     private void setGhostsFrightened(boolean frightened) {
         ghostsEatenThisPowerMode = 0;
         for (Block ghost : ghosts) {
@@ -381,8 +608,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         ghost.eatenDuringPowerMode = true;
         ghost.image = ghost.normalImage;
         ghost.reset();
-        ghost.direction = directions[random.nextInt(4)];
-        ghost.updateVelocity();
+        setGhostDirection(ghost, directions[random.nextInt(4)]);
     }
 
     private void wrapThroughTunnel(Block block) {
@@ -456,10 +682,12 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         requestedDirection = '\0';
         powerModeTimeRemaining = 0;
         setGhostsFrightened(false);
+        ghostMode = GhostMode.SCATTER;
+        ghostModeTimeRemaining = scatterModeDuration;
         for (Block ghost : ghosts) {
             ghost.reset();
             char newDirection = directions[random.nextInt(4)];
-            ghost.updateDirection(newDirection);
+            setGhostDirection(ghost, newDirection);
         }
     }
 

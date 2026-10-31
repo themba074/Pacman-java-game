@@ -105,7 +105,7 @@ Implement the following features in order unless the user explicitly approves a 
    - Allow Pac-Man to eat frightened ghosts.
    - Award increasing points for consecutive ghosts eaten during one power-pellet period.
    - Return eaten ghosts to their starting area.
-8. **Improved ghost behavior**
+8. **Improved ghost behavior — completed**
    - Replace purely random direction changes with understandable chase, scatter, and frightened behavior.
    - Keep each ghost's behavior testable and distinct where practical.
 9. **Character animation**
