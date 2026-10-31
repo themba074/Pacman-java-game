@@ -18,6 +18,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         int width;
         int height;
         Image image;
+        Image normalImage;
 
         int startX;
         int startY;
@@ -27,6 +28,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
 
         Block(Image image, int x, int y, int width, int height) {
             this.image = image;
+            this.normalImage = image;
             this.x = x;
             this.y = y;
             this.width = width;
@@ -88,6 +90,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     private Image orangeGhostImage;
     private Image pinkGhostImage;
     private Image redGhostImage;
+    private Image scaredGhostImage;
     private Image powerFoodImage;
 
     private Image pacmanUpImage;
@@ -149,6 +152,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         orangeGhostImage = new ImageIcon(getClass().getResource("./orangeGhost.png")).getImage();
         pinkGhostImage = new ImageIcon(getClass().getResource("./pinkGhost.png")).getImage();
         redGhostImage = new ImageIcon(getClass().getResource("./redGhost.png")).getImage();
+        scaredGhostImage = new ImageIcon(getClass().getResource("./scaredGhost.png")).getImage();
         powerFoodImage = new ImageIcon(getClass().getResource("./powerFood.png")).getImage();
 
         pacmanUpImage = new ImageIcon(getClass().getResource("./pacmanUp.png")).getImage();
@@ -289,7 +293,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
 
         //check ghost collisions
         for (Block ghost : ghosts) {
-            if (collision(ghost, pacman)) {
+            if (collision(ghost, pacman) && powerModeTimeRemaining == 0) {
                 lives -= 1;
                 if (lives == 0) {
                     gameState = GameState.GAME_OVER;
@@ -330,6 +334,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                 powerPelletEaten = powerPellet;
                 score += 50;
                 powerModeTimeRemaining = powerModeDuration;
+                setGhostsFrightened(true);
             }
         }
         powerPellets.remove(powerPelletEaten);
@@ -343,6 +348,15 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     private void updatePowerModeTimer() {
         if (powerModeTimeRemaining > 0) {
             powerModeTimeRemaining = Math.max(0, powerModeTimeRemaining - gameLoop.getDelay());
+            if (powerModeTimeRemaining == 0) {
+                setGhostsFrightened(false);
+            }
+        }
+    }
+
+    private void setGhostsFrightened(boolean frightened) {
+        for (Block ghost : ghosts) {
+            ghost.image = frightened ? scaredGhostImage : ghost.normalImage;
         }
     }
 
@@ -416,6 +430,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         pacman.velocityY = 0;
         requestedDirection = '\0';
         powerModeTimeRemaining = 0;
+        setGhostsFrightened(false);
         for (Block ghost : ghosts) {
             ghost.reset();
             char newDirection = directions[random.nextInt(4)];

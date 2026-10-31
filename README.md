@@ -21,6 +21,7 @@ The game is being improved incrementally. Each feature is proposed, reviewed, an
 - Ready, playing, paused, and game-over states with explicit controls
 - Left and right tunnel wrapping for Pac-Man and ghosts
 - Four power pellets worth 50 points with a seven-second power-mode timer
+- Frightened ghosts that become harmless during power mode
 
 ## Controls
 
@@ -43,7 +44,7 @@ After game over, press R to reset the game, then press Space to start.
 
 ## Power pellets
 
-Four larger pellets appear near the maze corners. Each one awards 50 points and activates a seven-second power-mode countdown shown in the HUD. Power mode pauses with the game. Frightened ghost appearance and vulnerability are planned for Feature 6.
+Four larger pellets appear near the maze corners. Each one awards 50 points and activates a seven-second power-mode countdown shown in the HUD. Power mode pauses with the game. During power mode, ghosts use the scared sprite and collisions with them do not cost a life. Their normal appearance and danger return when the timer expires. Eating frightened ghosts and earning ghost bonuses are planned for Feature 7.
 
 ## Technology
 
@@ -101,7 +102,7 @@ Features will be proposed, approved, and implemented one at a time. The default 
 3. [x] Pause, restart, and start states
 4. [x] Tunnel wrapping
 5. [x] Power pellets
-6. Frightened ghost mode
+6. [x] Frightened ghost mode
 7. Ghost-eating bonuses
 8. Improved ghost behavior
 9. Character animation
@@ -112,7 +113,7 @@ Features will be proposed, approved, and implemented one at a time. The default 
 14. Code structure refactor
 15. Automated tests
 
-Features 1 through 5 are complete. The remaining items have not been implemented yet. Completed items will be marked here and incorporated into the current-features documentation as development progresses.
+Features 1 through 6 are complete. The remaining items have not been implemented yet. Completed items will be marked here and incorporated into the current-features documentation as development progresses.
 
 ## Development workflow
 
