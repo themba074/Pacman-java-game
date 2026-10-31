@@ -23,6 +23,7 @@ The game is being improved incrementally. Each feature is proposed, reviewed, an
 - Four power pellets worth 50 points with a seven-second power-mode timer
 - Frightened ghosts that become harmless during power mode
 - Consecutive frightened-ghost bonuses worth 200, 400, 800, and 1,600 points
+- Distinct ghost targeting with alternating scatter and chase modes
 
 ## Controls
 
@@ -46,6 +47,10 @@ After game over, press R to reset the game, then press Space to start.
 ## Power pellets
 
 Four larger pellets appear near the maze corners. Each one awards 50 points and activates a seven-second power-mode countdown shown in the HUD. Power mode pauses with the game. During power mode, ghosts use the scared sprite and can be eaten on collision. Consecutive ghosts are worth 200, 400, 800, and 1,600 points. Eaten ghosts return to their starting area and cannot be scored again during the same power period. Their normal danger returns when the timer expires.
+
+## Ghost behavior
+
+Ghosts alternate between seven-second scatter periods and 20-second chase periods. Red targets Pac-Man directly, Pink aims ahead of Pac-Man, Blue calculates an ambush target using Red's position, and Orange chases from a distance but retreats to its corner when close. At intersections, ghosts select legal routes without reversing unless no alternative exists. Frightened ghosts choose randomly from the same legal routes. The chase/scatter timer pauses during power mode and while the game is paused.
 
 ## Technology
 
@@ -105,7 +110,7 @@ Features will be proposed, approved, and implemented one at a time. The default 
 5. [x] Power pellets
 6. [x] Frightened ghost mode
 7. [x] Ghost-eating bonuses
-8. Improved ghost behavior
+8. [x] Improved ghost behavior
 9. Character animation
 10. Cherry and bonus items
 11. Sound effects and music
@@ -114,7 +119,7 @@ Features will be proposed, approved, and implemented one at a time. The default 
 14. Code structure refactor
 15. Automated tests
 
-Features 1 through 7 are complete. The remaining items have not been implemented yet. Completed items will be marked here and incorporated into the current-features documentation as development progresses.
+Features 1 through 8 are complete. The remaining items have not been implemented yet. Completed items will be marked here and incorporated into the current-features documentation as development progresses.
 
 ## Development workflow
 
