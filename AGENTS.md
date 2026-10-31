@@ -101,7 +101,7 @@ Implement the following features in order unless the user explicitly approves a 
 6. **Frightened ghost mode — completed**
    - Change ghosts to the scared sprite while a power pellet is active.
    - Make frightened ghosts vulnerable and restore them when the timer expires.
-7. **Ghost-eating bonuses**
+7. **Ghost-eating bonuses — completed**
    - Allow Pac-Man to eat frightened ghosts.
    - Award increasing points for consecutive ghosts eaten during one power-pellet period.
    - Return eaten ghosts to their starting area.
