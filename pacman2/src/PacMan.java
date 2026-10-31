@@ -161,10 +161,14 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     int powerModeTimeRemaining = 0;
     int ghostsEatenThisPowerMode = 0;
     private int powerModeDuration = 7000;
+    private int minimumPowerModeDuration = 3000;
     GhostMode ghostMode = GhostMode.SCATTER;
     int ghostModeTimeRemaining = 7000;
     private int scatterModeDuration = 7000;
+    private int minimumScatterModeDuration = 3000;
     private int chaseModeDuration = 20000;
+    private int maximumChaseModeDuration = 30000;
+    int level = 1;
     boolean pacmanMouthOpen = true;
     int pacmanAnimationTime = 0;
     private int pacmanAnimationFrameDuration = 150;
@@ -189,6 +193,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
 
     PacMan(SoundManager soundManager) {
         this.soundManager = soundManager;
+        applyLevelDifficulty();
         setPreferredSize(new Dimension(boardWidth, boardHeight));
         setBackground(Color.BLACK);
         addKeyListener(this);
@@ -320,7 +325,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         }
         //score and game state
         g.setFont(new Font("Arial", Font.PLAIN, 18));
-        String gameStatus = "x" + lives + " Score: " + score;
+        String gameStatus = "Level " + level + "  x" + lives + " Score: " + score;
         if (powerModeTimeRemaining > 0) {
             int secondsRemaining = (powerModeTimeRemaining + 999)/1000;
             gameStatus += " Power: " + secondsRemaining + "s";
@@ -440,9 +445,18 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
 
         if (foods.isEmpty() && powerPellets.isEmpty()) {
             soundManager.playEffect(SoundManager.SoundEffect.LEVEL_COMPLETE);
+            level += 1;
+            applyLevelDifficulty();
             loadMap();
             resetPositions();
         }
+    }
+
+    private void applyLevelDifficulty() {
+        int completedLevels = Math.max(0, level - 1);
+        powerModeDuration = Math.max(minimumPowerModeDuration, 7000 - completedLevels*500);
+        scatterModeDuration = Math.max(minimumScatterModeDuration, 7000 - completedLevels*500);
+        chaseModeDuration = Math.min(maximumChaseModeDuration, 20000 + completedLevels*1000);
     }
 
     private void updateBonusItemTimer() {
@@ -782,6 +796,8 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
 
     private void resetGame() {
         soundManager.setBackgroundPlaying(false);
+        level = 1;
+        applyLevelDifficulty();
         loadMap();
         resetPositions();
         lives = 3;

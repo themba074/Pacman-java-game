@@ -116,7 +116,7 @@ Implement the following features in order unless the user explicitly approves a 
 11. **Sound effects and music — completed**
     - Add audio for core events such as starting, eating pellets, power mode, losing a life, and game over.
     - Provide a way to mute audio.
-12. **Levels and difficulty progression**
+12. **Levels and difficulty progression — completed**
     - Track the current level.
     - Increase difficulty in controlled, documented steps after a maze is cleared.
 13. **High-score persistence**
