@@ -22,6 +22,7 @@ The game is being improved incrementally. Each feature is proposed, reviewed, an
 - Left and right tunnel wrapping for Pac-Man and ghosts
 - Four power pellets worth 50 points with a seven-second power-mode timer
 - Frightened ghosts that become harmless during power mode
+- Consecutive frightened-ghost bonuses worth 200, 400, 800, and 1,600 points
 
 ## Controls
 
@@ -44,7 +45,7 @@ After game over, press R to reset the game, then press Space to start.
 
 ## Power pellets
 
-Four larger pellets appear near the maze corners. Each one awards 50 points and activates a seven-second power-mode countdown shown in the HUD. Power mode pauses with the game. During power mode, ghosts use the scared sprite and collisions with them do not cost a life. Their normal appearance and danger return when the timer expires. Eating frightened ghosts and earning ghost bonuses are planned for Feature 7.
+Four larger pellets appear near the maze corners. Each one awards 50 points and activates a seven-second power-mode countdown shown in the HUD. Power mode pauses with the game. During power mode, ghosts use the scared sprite and can be eaten on collision. Consecutive ghosts are worth 200, 400, 800, and 1,600 points. Eaten ghosts return to their starting area and cannot be scored again during the same power period. Their normal danger returns when the timer expires.
 
 ## Technology
 
@@ -103,7 +104,7 @@ Features will be proposed, approved, and implemented one at a time. The default 
 4. [x] Tunnel wrapping
 5. [x] Power pellets
 6. [x] Frightened ghost mode
-7. Ghost-eating bonuses
+7. [x] Ghost-eating bonuses
 8. Improved ghost behavior
 9. Character animation
 10. Cherry and bonus items
@@ -113,7 +114,7 @@ Features will be proposed, approved, and implemented one at a time. The default 
 14. Code structure refactor
 15. Automated tests
 
-Features 1 through 6 are complete. The remaining items have not been implemented yet. Completed items will be marked here and incorporated into the current-features documentation as development progresses.
+Features 1 through 7 are complete. The remaining items have not been implemented yet. Completed items will be marked here and incorporated into the current-features documentation as development progresses.
 
 ## Development workflow
 

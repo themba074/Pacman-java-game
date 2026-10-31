@@ -25,6 +25,8 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         char direction = 'U'; // U D L R
         int velocityX = 0;
         int velocityY = 0;
+        boolean frightened = false;
+        boolean eatenDuringPowerMode = false;
 
         Block(Image image, int x, int y, int width, int height) {
             this.image = image;
@@ -138,6 +140,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     char requestedDirection = '\0';
     GameState gameState = GameState.READY;
     int powerModeTimeRemaining = 0;
+    int ghostsEatenThisPowerMode = 0;
     private int powerModeDuration = 7000;
 
     PacMan() {
@@ -293,13 +296,19 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
 
         //check ghost collisions
         for (Block ghost : ghosts) {
-            if (collision(ghost, pacman) && powerModeTimeRemaining == 0) {
-                lives -= 1;
-                if (lives == 0) {
-                    gameState = GameState.GAME_OVER;
-                    return;
+            if (collision(ghost, pacman)) {
+                if (ghost.frightened) {
+                    eatGhost(ghost);
+                    continue;
                 }
-                resetPositions();
+                else if (!ghost.eatenDuringPowerMode || powerModeTimeRemaining == 0) {
+                    lives -= 1;
+                    if (lives == 0) {
+                        gameState = GameState.GAME_OVER;
+                        return;
+                    }
+                    resetPositions();
+                }
             }
 
             if (ghost.y == tileSize*tunnelRow && ghost.direction != 'U' && ghost.direction != 'D') {
@@ -355,9 +364,25 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     }
 
     private void setGhostsFrightened(boolean frightened) {
+        ghostsEatenThisPowerMode = 0;
         for (Block ghost : ghosts) {
+            ghost.frightened = frightened;
+            ghost.eatenDuringPowerMode = false;
             ghost.image = frightened ? scaredGhostImage : ghost.normalImage;
         }
+    }
+
+    private void eatGhost(Block ghost) {
+        int bonusMultiplier = 1 << Math.min(ghostsEatenThisPowerMode, 3);
+        score += 200*bonusMultiplier;
+        ghostsEatenThisPowerMode += 1;
+
+        ghost.frightened = false;
+        ghost.eatenDuringPowerMode = true;
+        ghost.image = ghost.normalImage;
+        ghost.reset();
+        ghost.direction = directions[random.nextInt(4)];
+        ghost.updateVelocity();
     }
 
     private void wrapThroughTunnel(Block block) {
