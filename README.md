@@ -24,6 +24,7 @@ The game is being improved incrementally. Each feature is proposed, reviewed, an
 - Frightened ghosts that become harmless during power mode
 - Consecutive frightened-ghost bonuses worth 200, 400, 800, and 1,600 points
 - Distinct ghost targeting with alternating scatter and chase modes
+- Ghost movement balanced to 80% of Pac-Man's speed
 - Animated Pac-Man movement and a flashing frightened-mode expiry warning
 - Timed cherry bonuses tied to pellet collection progress
 - Original synthesized sound effects and looping background music
@@ -56,7 +57,7 @@ Four larger pellets appear near the maze corners. Each one awards 50 points and 
 
 ## Ghost behavior
 
-Ghosts alternate between seven-second scatter periods and 20-second chase periods. Red targets Pac-Man directly, Pink aims ahead of Pac-Man, Blue calculates an ambush target using Red's position, and Orange chases from a distance but retreats to its corner when close. At intersections, ghosts select legal routes without reversing unless no alternative exists. Frightened ghosts choose randomly from the same legal routes. The chase/scatter timer pauses during power mode and while the game is paused.
+Ghosts alternate between seven-second scatter periods and 20-second chase periods. Red targets Pac-Man directly, Pink aims ahead of Pac-Man, Blue calculates an ambush target using Red's position, and Orange chases from a distance but retreats to its corner when close. At intersections, ghosts select legal routes without reversing unless no alternative exists. Ghosts move at 80% of Pac-Man's speed to keep their predictive behavior approachable. Frightened ghosts choose randomly from the same legal routes. The chase/scatter timer pauses during power mode and while the game is paused.
 
 ## Character animation
 

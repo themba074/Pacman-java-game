@@ -169,6 +169,8 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     private int minimumScatterModeDuration = 3000;
     private int chaseModeDuration = 20000;
     private int maximumChaseModeDuration = 30000;
+    private int ghostMovementFrame = 0;
+    private static final int GHOST_MOVEMENT_CYCLE = 5;
     int level = 1;
     boolean pacmanMouthOpen = true;
     int pacmanAnimationTime = 0;
@@ -389,6 +391,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         }
 
         //check ghost collisions
+        boolean moveGhostsThisFrame = shouldMoveGhosts();
         for (Block ghost : ghosts) {
             if (collision(ghost, pacman)) {
                 if (ghost.frightened) {
@@ -406,6 +409,10 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                     soundManager.playEffect(SoundManager.SoundEffect.LIFE_LOST);
                     resetPositions();
                 }
+            }
+
+            if (!moveGhostsThisFrame) {
+                continue;
             }
 
             updateGhostDirectionAtIntersection(ghost);
@@ -555,6 +562,11 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                 ghostModeTimeRemaining = scatterModeDuration;
             }
         }
+    }
+
+    private boolean shouldMoveGhosts() {
+        ghostMovementFrame = (ghostMovementFrame + 1)%GHOST_MOVEMENT_CYCLE;
+        return ghostMovementFrame != 0;
     }
 
     private void updateGhostDirectionAtIntersection(Block ghost) {
@@ -891,6 +903,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         setGhostsFrightened(false);
         ghostMode = GhostMode.SCATTER;
         ghostModeTimeRemaining = scatterModeDuration;
+        ghostMovementFrame = 0;
         for (Block ghost : ghosts) {
             ghost.reset();
             char newDirection = directions[random.nextInt(4)];
