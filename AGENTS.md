@@ -108,6 +108,7 @@ Implement the following features in order unless the user explicitly approves a 
 8. **Improved ghost behavior — completed**
    - Replace purely random direction changes with understandable chase, scatter, and frightened behavior.
    - Keep each ghost's behavior testable and distinct where practical.
+   - Balance ghost movement at 80% of Pac-Man's speed.
 9. **Character animation — completed**
    - Animate Pac-Man's mouth and relevant ghost states without changing movement speed.
 10. **Cherry and bonus items — completed**
