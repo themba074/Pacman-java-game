@@ -119,7 +119,7 @@ Implement the following features in order unless the user explicitly approves a 
 12. **Levels and difficulty progression — completed**
     - Track the current level.
     - Increase difficulty in controlled, documented steps after a maze is cleared.
-13. **High-score persistence**
+13. **High-score persistence — completed**
     - Display the high score and save it locally between game sessions.
 14. **Code structure refactor**
     - Separate game state, map data, entities, input, and rendering into focused classes.

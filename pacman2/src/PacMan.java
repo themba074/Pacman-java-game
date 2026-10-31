@@ -155,6 +155,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     char[] directions = {'U', 'D', 'L', 'R'}; //up down left right
     Random random = new Random();
     int score = 0;
+    int highScore = 0;
     int lives = 3;
     char requestedDirection = '\0';
     GameState gameState = GameState.READY;
@@ -186,13 +187,20 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     private int firstBonusThreshold = 70;
     private int secondBonusThreshold = 170;
     SoundManager soundManager;
+    HighScoreStore highScoreStore;
 
     PacMan() {
-        this(new SoundManager());
+        this(new SoundManager(), new PreferencesHighScoreStore());
     }
 
     PacMan(SoundManager soundManager) {
+        this(soundManager, new PreferencesHighScoreStore());
+    }
+
+    PacMan(SoundManager soundManager, HighScoreStore highScoreStore) {
         this.soundManager = soundManager;
+        this.highScoreStore = highScoreStore;
+        highScore = loadHighScore();
         applyLevelDifficulty();
         setPreferredSize(new Dimension(boardWidth, boardHeight));
         setBackground(Color.BLACK);
@@ -325,14 +333,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         }
         //score and game state
         g.setFont(new Font("Arial", Font.PLAIN, 18));
-        String gameStatus = "Level " + level + "  x" + lives + " Score: " + score;
-        if (powerModeTimeRemaining > 0) {
-            int secondsRemaining = (powerModeTimeRemaining + 999)/1000;
-            gameStatus += " Power: " + secondsRemaining + "s";
-        }
-        if (soundManager.isMuted()) {
-            gameStatus += " Muted";
-        }
+        String gameStatus = buildGameStatus();
         g.drawString(gameStatus, tileSize/2, tileSize/2);
 
         if (gameState == GameState.READY) {
@@ -344,6 +345,19 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         else if (gameState == GameState.GAME_OVER) {
             drawCenteredMessage(g, "Game Over: " + score + " - Press R to restart");
         }
+    }
+
+    String buildGameStatus() {
+        String gameStatus = "Level " + level + "  x" + lives + " Score: " + score +
+                " High: " + highScore;
+        if (powerModeTimeRemaining > 0) {
+            int secondsRemaining = (powerModeTimeRemaining + 999)/1000;
+            gameStatus += " Power: " + secondsRemaining + "s";
+        }
+        if (soundManager.isMuted()) {
+            gameStatus += " Muted";
+        }
+        return gameStatus;
     }
 
     private void drawCenteredMessage(Graphics g, String message) {
@@ -413,7 +427,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         for (Block food : foods) {
             if (collision(pacman, food)) {
                 foodEaten = food;
-                score += 10;
+                addScore(10);
             }
         }
         foods.remove(foodEaten);
@@ -426,7 +440,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         for (Block powerPellet : powerPellets) {
             if (collision(pacman, powerPellet)) {
                 powerPelletEaten = powerPellet;
-                score += 50;
+                addScore(50);
                 powerModeTimeRemaining = powerModeDuration;
                 setGhostsFrightened(true);
             }
@@ -438,7 +452,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         }
 
         if (bonusItem != null && collision(pacman, bonusItem)) {
-            score += bonusItemScore;
+            addScore(bonusItemScore);
             soundManager.playEffect(SoundManager.SoundEffect.BONUS);
             clearBonusItem();
         }
@@ -457,6 +471,28 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         powerModeDuration = Math.max(minimumPowerModeDuration, 7000 - completedLevels*500);
         scatterModeDuration = Math.max(minimumScatterModeDuration, 7000 - completedLevels*500);
         chaseModeDuration = Math.min(maximumChaseModeDuration, 20000 + completedLevels*1000);
+    }
+
+    private void addScore(int points) {
+        score += points;
+        if (score > highScore) {
+            highScore = score;
+            try {
+                highScoreStore.save(highScore);
+            }
+            catch (RuntimeException exception) {
+                // Keep the session high score when local persistence is unavailable.
+            }
+        }
+    }
+
+    private int loadHighScore() {
+        try {
+            return Math.max(0, highScoreStore.load());
+        }
+        catch (RuntimeException exception) {
+            return 0;
+        }
     }
 
     private void updateBonusItemTimer() {
@@ -721,7 +757,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
 
     private void eatGhost(Block ghost) {
         int bonusMultiplier = 1 << Math.min(ghostsEatenThisPowerMode, 3);
-        score += 200*bonusMultiplier;
+        addScore(200*bonusMultiplier);
         ghostsEatenThisPowerMode += 1;
         soundManager.playEffect(SoundManager.SoundEffect.GHOST_EATEN);
 
