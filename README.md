@@ -28,6 +28,7 @@ The game is being improved incrementally. Each feature is proposed, reviewed, an
 - Timed cherry bonuses tied to pellet collection progress
 - Original synthesized sound effects and looping background music
 - Persistent levels with progressively shorter power/scatter modes and longer chase modes
+- A persistent high score displayed in the HUD and retained between game sessions
 
 ## Controls
 
@@ -73,6 +74,10 @@ The game generates original synthetic sound effects at runtime for starting, pel
 
 Clearing every regular and power pellet advances to the next level while preserving the current score and remaining lives. The HUD displays the level. Each new level shortens power mode and scatter mode by 500 milliseconds, down to a three-second minimum, and extends chase mode by one second, up to a 30-second maximum. Movement speed remains unchanged to preserve tile alignment. Pressing R starts a new run at Level 1.
 
+## High score
+
+The HUD displays the highest score achieved. The record is saved in the current user's Java preferences and loaded the next time the game starts. Pressing R resets the current run but does not erase the high score. If local preference storage is unavailable, the game remains playable and keeps the record for the current session.
+
 ## Technology
 
 - Java
@@ -88,6 +93,7 @@ pacman2/
 |-- src/
 |   |-- Main.java       # Creates the window and starts the game
 |   |-- PacMan.java     # Game loop, map, entities, input, and rendering
+|   |-- HighScoreStore.java # Local high-score persistence
 |   |-- SoundManager.java # Runtime-generated effects, music, and mute state
 |   `-- *.png           # Character, wall, and item artwork
 `-- pom.xml             # Maven build and run configuration
@@ -137,11 +143,11 @@ Features will be proposed, approved, and implemented one at a time. The default 
 10. [x] Cherry and bonus items
 11. [x] Sound effects and music
 12. [x] Levels and difficulty progression
-13. High-score persistence
+13. [x] High-score persistence
 14. Code structure refactor
 15. Automated tests
 
-Features 1 through 12 are complete. The remaining items have not been implemented yet. Completed items will be marked here and incorporated into the current-features documentation as development progresses.
+Features 1 through 13 are complete. The remaining items have not been implemented yet. Completed items will be marked here and incorporated into the current-features documentation as development progresses.
 
 ## Development workflow
 
