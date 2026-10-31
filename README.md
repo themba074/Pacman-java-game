@@ -24,6 +24,7 @@ The game is being improved incrementally. Each feature is proposed, reviewed, an
 - Frightened ghosts that become harmless during power mode
 - Consecutive frightened-ghost bonuses worth 200, 400, 800, and 1,600 points
 - Distinct ghost targeting with alternating scatter and chase modes
+- Animated Pac-Man movement and a flashing frightened-mode expiry warning
 
 ## Controls
 
@@ -51,6 +52,10 @@ Four larger pellets appear near the maze corners. Each one awards 50 points and 
 ## Ghost behavior
 
 Ghosts alternate between seven-second scatter periods and 20-second chase periods. Red targets Pac-Man directly, Pink aims ahead of Pac-Man, Blue calculates an ambush target using Red's position, and Orange chases from a distance but retreats to its corner when close. At intersections, ghosts select legal routes without reversing unless no alternative exists. Frightened ghosts choose randomly from the same legal routes. The chase/scatter timer pauses during power mode and while the game is paused.
+
+## Character animation
+
+Pac-Man alternates between the directional open-mouth sprite and a closed-mouth frame every 150 milliseconds while moving. The mouth stays open while stationary. During the final two seconds of power mode, frightened ghosts flash every 200 milliseconds as an expiry warning. Animation freezes while the game is paused and does not affect movement speed or collision state.
 
 ## Technology
 
@@ -111,7 +116,7 @@ Features will be proposed, approved, and implemented one at a time. The default 
 6. [x] Frightened ghost mode
 7. [x] Ghost-eating bonuses
 8. [x] Improved ghost behavior
-9. Character animation
+9. [x] Character animation
 10. Cherry and bonus items
 11. Sound effects and music
 12. Levels and difficulty progression
@@ -119,7 +124,7 @@ Features will be proposed, approved, and implemented one at a time. The default 
 14. Code structure refactor
 15. Automated tests
 
-Features 1 through 8 are complete. The remaining items have not been implemented yet. Completed items will be marked here and incorporated into the current-features documentation as development progresses.
+Features 1 through 9 are complete. The remaining items have not been implemented yet. Completed items will be marked here and incorporated into the current-features documentation as development progresses.
 
 ## Development workflow
 

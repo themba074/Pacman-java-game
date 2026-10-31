@@ -1,5 +1,6 @@
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -114,6 +115,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     private Image pacmanDownImage;
     private Image pacmanLeftImage;
     private Image pacmanRightImage;
+    private Image pacmanClosedImage;
 
     //X = wall, O = skip, P = pac man, Q = power pellet, ' ' = food
     //Ghosts: b = blue, o = orange, p = pink, r = red
@@ -161,6 +163,13 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     int ghostModeTimeRemaining = 7000;
     private int scatterModeDuration = 7000;
     private int chaseModeDuration = 20000;
+    boolean pacmanMouthOpen = true;
+    int pacmanAnimationTime = 0;
+    private int pacmanAnimationFrameDuration = 150;
+    boolean frightenedGhostsShowScared = true;
+    int frightenedFlashTime = 0;
+    private int frightenedFlashThreshold = 2000;
+    private int frightenedFlashFrameDuration = 200;
 
     PacMan() {
         setPreferredSize(new Dimension(boardWidth, boardHeight));
@@ -181,6 +190,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         pacmanDownImage = new ImageIcon(getClass().getResource("./pacmanDown.png")).getImage();
         pacmanLeftImage = new ImageIcon(getClass().getResource("./pacmanLeft.png")).getImage();
         pacmanRightImage = new ImageIcon(getClass().getResource("./pacmanRight.png")).getImage();
+        pacmanClosedImage = createPacmanClosedImage();
 
         loadMap();
         for (Block ghost : ghosts) {
@@ -191,6 +201,15 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         gameLoop = new Timer(50, this); //20fps (1000/50)
         gameLoop.start();
 
+    }
+
+    private Image createPacmanClosedImage() {
+        BufferedImage image = new BufferedImage(tileSize, tileSize, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D graphics = image.createGraphics();
+        graphics.setColor(Color.YELLOW);
+        graphics.fillOval(2, 2, tileSize - 4, tileSize - 4);
+        graphics.dispose();
+        return image;
     }
 
     public void loadMap() {
@@ -233,6 +252,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                 }
                 else if (tileMapChar == 'P') { //pacman
                     pacman = new Block(pacmanRightImage, x, y, tileSize, tileSize);
+                    pacman.direction = 'R';
                 }
                 else if (tileMapChar == 'Q') { //power pellet
                     Block powerPellet = new Block(powerFoodImage, x + 8, y + 8, tileSize/2, tileSize/2);
@@ -592,6 +612,8 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
 
     private void setGhostsFrightened(boolean frightened) {
         ghostsEatenThisPowerMode = 0;
+        frightenedGhostsShowScared = true;
+        frightenedFlashTime = 0;
         for (Block ghost : ghosts) {
             ghost.frightened = frightened;
             ghost.eatenDuringPowerMode = false;
@@ -609,6 +631,50 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         ghost.image = ghost.normalImage;
         ghost.reset();
         setGhostDirection(ghost, directions[random.nextInt(4)]);
+    }
+
+    private void updateCharacterAnimations(boolean pacmanMoved) {
+        updatePacmanAnimation(pacmanMoved);
+        updateFrightenedGhostAnimation();
+    }
+
+    private void updatePacmanAnimation(boolean pacmanMoved) {
+        if (!pacmanMoved) {
+            pacmanMouthOpen = true;
+            pacmanAnimationTime = 0;
+        }
+        else {
+            pacmanAnimationTime += gameLoop.getDelay();
+            if (pacmanAnimationTime >= pacmanAnimationFrameDuration) {
+                pacmanAnimationTime -= pacmanAnimationFrameDuration;
+                pacmanMouthOpen = !pacmanMouthOpen;
+            }
+        }
+        updatePacmanImage();
+    }
+
+    private void updateFrightenedGhostAnimation() {
+        if (powerModeTimeRemaining <= 0) {
+            return;
+        }
+
+        if (powerModeTimeRemaining > frightenedFlashThreshold) {
+            frightenedGhostsShowScared = true;
+            frightenedFlashTime = 0;
+        }
+        else {
+            frightenedFlashTime += gameLoop.getDelay();
+            if (frightenedFlashTime >= frightenedFlashFrameDuration) {
+                frightenedFlashTime -= frightenedFlashFrameDuration;
+                frightenedGhostsShowScared = !frightenedGhostsShowScared;
+            }
+        }
+
+        for (Block ghost : ghosts) {
+            if (ghost.frightened) {
+                ghost.image = frightenedGhostsShowScared ? scaredGhostImage : ghost.normalImage;
+            }
+        }
     }
 
     private void wrapThroughTunnel(Block block) {
@@ -654,18 +720,18 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     }
 
     private void updatePacmanImage() {
-        if (pacman.direction == 'U') {
-            pacman.image = pacmanUpImage;
+        if (!pacmanMouthOpen) {
+            pacman.image = pacmanClosedImage;
+            return;
         }
-        else if (pacman.direction == 'D') {
-            pacman.image = pacmanDownImage;
-        }
-        else if (pacman.direction == 'L') {
-            pacman.image = pacmanLeftImage;
-        }
-        else if (pacman.direction == 'R') {
-            pacman.image = pacmanRightImage;
-        }
+        pacman.image = getPacmanDirectionalImage();
+    }
+
+    private Image getPacmanDirectionalImage() {
+        if (pacman.direction == 'U') return pacmanUpImage;
+        if (pacman.direction == 'D') return pacmanDownImage;
+        if (pacman.direction == 'L') return pacmanLeftImage;
+        return pacmanRightImage;
     }
 
     public boolean collision(Block a, Block b) {
@@ -679,6 +745,9 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         pacman.reset();
         pacman.velocityX = 0;
         pacman.velocityY = 0;
+        pacmanMouthOpen = true;
+        pacmanAnimationTime = 0;
+        updatePacmanImage();
         requestedDirection = '\0';
         powerModeTimeRemaining = 0;
         setGhostsFrightened(false);
@@ -694,7 +763,11 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         if (gameState == GameState.PLAYING) {
+            int previousPacmanX = pacman.x;
+            int previousPacmanY = pacman.y;
             move();
+            boolean pacmanMoved = pacman.x != previousPacmanX || pacman.y != previousPacmanY;
+            updateCharacterAnimations(pacmanMoved);
         }
         repaint();
     }
