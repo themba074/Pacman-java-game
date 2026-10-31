@@ -27,6 +27,7 @@ The game is being improved incrementally. Each feature is proposed, reviewed, an
 - Animated Pac-Man movement and a flashing frightened-mode expiry warning
 - Timed cherry bonuses tied to pellet collection progress
 - Original synthesized sound effects and looping background music
+- Persistent levels with progressively shorter power/scatter modes and longer chase modes
 
 ## Controls
 
@@ -67,6 +68,10 @@ A 100-point cherry appears below the ghost house after 70 pellets are collected.
 ## Audio
 
 The game generates original synthetic sound effects at runtime for starting, pellets, power pellets, bonus items, eaten ghosts, lost lives, game over, and level completion. A generated background pattern loops only during active gameplay and stops on pause, ready, and game-over screens. Muting preserves the requested gameplay-music state so it resumes when unmuted. If no Java audio line is available, audio disables itself without interrupting gameplay.
+
+## Levels and difficulty
+
+Clearing every regular and power pellet advances to the next level while preserving the current score and remaining lives. The HUD displays the level. Each new level shortens power mode and scatter mode by 500 milliseconds, down to a three-second minimum, and extends chase mode by one second, up to a 30-second maximum. Movement speed remains unchanged to preserve tile alignment. Pressing R starts a new run at Level 1.
 
 ## Technology
 
@@ -131,12 +136,12 @@ Features will be proposed, approved, and implemented one at a time. The default 
 9. [x] Character animation
 10. [x] Cherry and bonus items
 11. [x] Sound effects and music
-12. Levels and difficulty progression
+12. [x] Levels and difficulty progression
 13. High-score persistence
 14. Code structure refactor
 15. Automated tests
 
-Features 1 through 11 are complete. The remaining items have not been implemented yet. Completed items will be marked here and incorporated into the current-features documentation as development progresses.
+Features 1 through 12 are complete. The remaining items have not been implemented yet. Completed items will be marked here and incorporated into the current-features documentation as development progresses.
 
 ## Development workflow
 
