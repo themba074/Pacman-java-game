@@ -31,6 +31,7 @@ The game is being improved incrementally. Each feature is proposed, reviewed, an
 - Persistent levels with progressively shorter power/scatter modes and longer chase modes
 - A persistent high score displayed in the HUD and retained between game sessions
 - Focused classes for session state, maze data, entities, input, and rendering
+- A headless JUnit test suite for core non-visual gameplay rules
 
 ## Controls
 
@@ -85,6 +86,7 @@ The HUD displays the highest score achieved. The record is saved in the current 
 - Java
 - Java Swing and AWT
 - Maven
+- JUnit 5
 - IntelliJ IDEA project structure
 - PNG sprite assets
 
@@ -103,6 +105,7 @@ pacman2/
 |   |-- HighScoreStore.java # Local high-score persistence
 |   |-- SoundManager.java # Runtime-generated effects, music, and mute state
 |   `-- *.png           # Character, wall, and item artwork
+|-- test/               # Headless JUnit tests for non-visual game rules
 `-- pom.xml             # Maven build and run configuration
 ```
 
@@ -123,6 +126,14 @@ Run the game with:
 ```text
 mvn exec:java
 ```
+
+Run the automated tests with:
+
+```text
+mvn test
+```
+
+The tests run in headless mode with audio output disabled and in-memory high-score storage where gameplay integration is exercised.
 
 Maven requires Java 11 or newer.
 
@@ -152,9 +163,9 @@ Features will be proposed, approved, and implemented one at a time. The default 
 12. [x] Levels and difficulty progression
 13. [x] High-score persistence
 14. [x] Code structure refactor
-15. Automated tests
+15. [x] Automated tests
 
-Features 1 through 14 are complete. Automated tests are the remaining roadmap item and have not been implemented yet.
+All 15 roadmap features are complete.
 
 ## Development workflow
 
