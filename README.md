@@ -30,6 +30,7 @@ The game is being improved incrementally. Each feature is proposed, reviewed, an
 - Original synthesized sound effects and looping background music
 - Persistent levels with progressively shorter power/scatter modes and longer chase modes
 - A persistent high score displayed in the HUD and retained between game sessions
+- Focused classes for session state, maze data, entities, input, and rendering
 
 ## Controls
 
@@ -93,7 +94,12 @@ The HUD displays the highest score achieved. The record is saved in the current 
 pacman2/
 |-- src/
 |   |-- Main.java       # Creates the window and starts the game
-|   |-- PacMan.java     # Game loop, map, entities, input, and rendering
+|   |-- PacMan.java     # Coordinates gameplay and the Swing game loop
+|   |-- GameEntity.java # Movable and drawable entity state
+|   |-- GameRenderer.java # Board, HUD, and state-message rendering
+|   |-- GameSession.java # Score, lives, level, and play state
+|   |-- InputController.java # Keyboard-to-command mapping
+|   |-- MazeMap.java    # Maze layout and board dimensions
 |   |-- HighScoreStore.java # Local high-score persistence
 |   |-- SoundManager.java # Runtime-generated effects, music, and mute state
 |   `-- *.png           # Character, wall, and item artwork
@@ -145,10 +151,10 @@ Features will be proposed, approved, and implemented one at a time. The default 
 11. [x] Sound effects and music
 12. [x] Levels and difficulty progression
 13. [x] High-score persistence
-14. Code structure refactor
+14. [x] Code structure refactor
 15. Automated tests
 
-Features 1 through 13 are complete. The remaining items have not been implemented yet. Completed items will be marked here and incorporated into the current-features documentation as development progresses.
+Features 1 through 14 are complete. Automated tests are the remaining roadmap item and have not been implemented yet.
 
 ## Development workflow
 

@@ -73,7 +73,8 @@ Follow these steps for every feature, bug fix, refactor, or gameplay change:
 ## Current project layout
 
 - `pacman2/src/Main.java` creates the Swing window and starts the game.
-- `pacman2/src/PacMan.java` currently contains the map, entities, movement, collision detection, rendering, score, lives, and game loop.
+- `pacman2/src/PacMan.java` coordinates gameplay and the Swing game loop.
+- `pacman2/src/GameSession.java`, `MazeMap.java`, `GameEntity.java`, `InputController.java`, and `GameRenderer.java` contain focused state, map, entity, input, and rendering responsibilities.
 - `pacman2/src/*.png` contains the game artwork.
 - `pacman2/target/` is generated Maven build output and should not be edited manually.
 - `pacman2/pom.xml` is the Maven build configuration.
@@ -122,7 +123,7 @@ Implement the following features in order unless the user explicitly approves a 
     - Increase difficulty in controlled, documented steps after a maze is cleared.
 13. **High-score persistence — completed**
     - Display the high score and save it locally between game sessions.
-14. **Code structure refactor**
+14. **Code structure refactor — completed**
     - Separate game state, map data, entities, input, and rendering into focused classes.
     - Preserve gameplay while restructuring and avoid combining this with a new player-facing feature.
 15. **Automated tests**
