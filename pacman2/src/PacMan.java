@@ -1,5 +1,6 @@
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -7,101 +8,14 @@ import java.util.List;
 import java.util.Random;
 import javax.swing.*;
 
-public class PacMan extends JPanel implements ActionListener, KeyListener {
-    enum GameState {
-        READY,
-        PLAYING,
-        PAUSED,
-        GAME_OVER
-    }
-
-    enum GhostType {
-        BLUE,
-        ORANGE,
-        PINK,
-        RED
-    }
-
-    enum GhostMode {
-        SCATTER,
-        CHASE
-    }
-
-    class Block {
-        int x;
-        int y;
-        int width;
-        int height;
-        Image image;
-        Image normalImage;
-
-        int startX;
-        int startY;
-        char direction = 'U'; // U D L R
-        int velocityX = 0;
-        int velocityY = 0;
-        boolean frightened = false;
-        boolean eatenDuringPowerMode = false;
-        GhostType ghostType;
-
-        Block(Image image, int x, int y, int width, int height) {
-            this.image = image;
-            this.normalImage = image;
-            this.x = x;
-            this.y = y;
-            this.width = width;
-            this.height = height;
-            this.startX = x;
-            this.startY = y;
-        }
-
-        void updateDirection(char direction) {
-            char prevDirection = this.direction;
-            this.direction = direction;
-            updateVelocity();
-            this.x += this.velocityX;
-            this.y += this.velocityY;
-            for (Block wall : walls) {
-                if (collision(this, wall)) {
-                    this.x -= this.velocityX;
-                    this.y -= this.velocityY;
-                    this.direction = prevDirection;
-                    updateVelocity();
-                }
-            }
-        }
-
-        void updateVelocity() {
-            if (this.direction == 'U') {
-                this.velocityX = 0;
-                this.velocityY = -tileSize/4;
-            }
-            else if (this.direction == 'D') {
-                this.velocityX = 0;
-                this.velocityY = tileSize/4;
-            }
-            else if (this.direction == 'L') {
-                this.velocityX = -tileSize/4;
-                this.velocityY = 0;
-            }
-            else if (this.direction == 'R') {
-                this.velocityX = tileSize/4;
-                this.velocityY = 0;
-            }
-        }
-
-        void reset() {
-            this.x = this.startX;
-            this.y = this.startY;
-        }
-    }
-
-    private int rowCount = 21;
-    private int columnCount = 19;
-    private int tileSize = 32;
-    private int boardWidth = columnCount * tileSize;
-    private int boardHeight = rowCount * tileSize;
-    private int tunnelRow = 9;
+public class PacMan extends JPanel implements ActionListener {
+    private final MazeMap mazeMap = new MazeMap();
+    private final int rowCount = MazeMap.ROW_COUNT;
+    private final int columnCount = MazeMap.COLUMN_COUNT;
+    private final int tileSize = MazeMap.TILE_SIZE;
+    private final int boardWidth = MazeMap.BOARD_WIDTH;
+    private final int boardHeight = MazeMap.BOARD_HEIGHT;
+    private final int tunnelRow = MazeMap.TUNNEL_ROW;
 
     private Image wallImage;
     private Image blueGhostImage;
@@ -119,46 +33,17 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     private Image pacmanRightImage;
     private Image pacmanClosedImage;
 
-    //X = wall, O = skip, P = pac man, Q = power pellet, ' ' = food
-    //Ghosts: b = blue, o = orange, p = pink, r = red
-    private String[] tileMap = {
-            "XXXXXXXXXXXXXXXXXXX",
-            "X        X        X",
-            "X XX XXX X XXX XX X",
-            "XQ               QX",
-            "X XX X XXXXX X XX X",
-            "X    X       X    X",
-            "XXXX XXXX XXXX XXXX",
-            "OOOX X       X XOOO",
-            "XXXX X XXrXX X XXXX",
-            "O      XbpoX      O",
-            "XXXX X XXXXX X XXXX",
-            "OOOX X       X XOOO",
-            "XXXX X XXXXX X XXXX",
-            "X        X        X",
-            "X XX XXX X XXX XX X",
-            "X  X     P     X  X",
-            "XX X X XXXXX X X XX",
-            "X    X   X   X    X",
-            "X XXXXXX X XXXXXX X",
-            "XQ               QX",
-            "XXXXXXXXXXXXXXXXXXX"
-    };
-
-    HashSet<Block> walls;
-    HashSet<Block> foods;
-    HashSet<Block> powerPellets;
-    HashSet<Block> ghosts;
-    Block pacman;
+    HashSet<GameEntity> walls;
+    HashSet<GameEntity> foods;
+    HashSet<GameEntity> powerPellets;
+    HashSet<GameEntity> ghosts;
+    GameEntity pacman;
 
     Timer gameLoop;
     char[] directions = {'U', 'D', 'L', 'R'}; //up down left right
     Random random = new Random();
-    int score = 0;
-    int highScore = 0;
-    int lives = 3;
     char requestedDirection = '\0';
-    GameState gameState = GameState.READY;
+    GameSession session;
     int powerModeTimeRemaining = 0;
     int ghostsEatenThisPowerMode = 0;
     private int powerModeDuration = 7000;
@@ -171,7 +56,6 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     private int maximumChaseModeDuration = 30000;
     private int ghostMovementFrame = 0;
     private static final int GHOST_MOVEMENT_CYCLE = 5;
-    int level = 1;
     boolean pacmanMouthOpen = true;
     int pacmanAnimationTime = 0;
     private int pacmanAnimationFrameDuration = 150;
@@ -179,7 +63,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     int frightenedFlashTime = 0;
     private int frightenedFlashThreshold = 2000;
     private int frightenedFlashFrameDuration = 200;
-    Block bonusItem;
+    GameEntity bonusItem;
     int bonusItemTimeRemaining = 0;
     int bonusItemScore = 0;
     int pelletsEatenThisLevel = 0;
@@ -190,6 +74,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     private int secondBonusThreshold = 170;
     SoundManager soundManager;
     HighScoreStore highScoreStore;
+    GameRenderer renderer;
 
     PacMan() {
         this(new SoundManager(), new PreferencesHighScoreStore());
@@ -202,11 +87,12 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     PacMan(SoundManager soundManager, HighScoreStore highScoreStore) {
         this.soundManager = soundManager;
         this.highScoreStore = highScoreStore;
-        highScore = loadHighScore();
+        session = new GameSession(loadHighScore());
+        renderer = new GameRenderer();
         applyLevelDifficulty();
         setPreferredSize(new Dimension(boardWidth, boardHeight));
         setBackground(Color.BLACK);
-        addKeyListener(this);
+        addKeyListener(new InputController(this::handleInput));
         setFocusable(true);
 
         //load images
@@ -227,7 +113,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         pacmanClosedImage = createPacmanClosedImage();
 
         loadMap();
-        for (Block ghost : ghosts) {
+        for (GameEntity ghost : ghosts) {
             char newDirection = directions[random.nextInt(4)];
             setGhostDirection(ghost, newDirection);
         }
@@ -247,10 +133,10 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     }
 
     public void loadMap() {
-        walls = new HashSet<Block>();
-        foods = new HashSet<Block>();
-        powerPellets = new HashSet<Block>();
-        ghosts = new HashSet<Block>();
+        walls = new HashSet<GameEntity>();
+        foods = new HashSet<GameEntity>();
+        powerPellets = new HashSet<GameEntity>();
+        ghosts = new HashSet<GameEntity>();
         pelletsEatenThisLevel = 0;
         firstBonusSpawned = false;
         secondBonusSpawned = false;
@@ -258,46 +144,45 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
 
         for (int r = 0; r < rowCount; r++) {
             for (int c = 0; c < columnCount; c++) {
-                String row = tileMap[r];
-                char tileMapChar = row.charAt(c);
+                char tileMapChar = mazeMap.tileAt(r, c);
 
                 int x = c*tileSize;
                 int y = r*tileSize;
 
                 if (tileMapChar == 'X') { //block wall
-                    Block wall = new Block(wallImage, x, y, tileSize, tileSize);
+                    GameEntity wall = new GameEntity(wallImage, x, y, tileSize, tileSize);
                     walls.add(wall);
                 }
                 else if (tileMapChar == 'b') { //blue ghost
-                    Block ghost = new Block(blueGhostImage, x, y, tileSize, tileSize);
+                    GameEntity ghost = new GameEntity(blueGhostImage, x, y, tileSize, tileSize);
                     ghost.ghostType = GhostType.BLUE;
                     ghosts.add(ghost);
                 }
                 else if (tileMapChar == 'o') { //orange ghost
-                    Block ghost = new Block(orangeGhostImage, x, y, tileSize, tileSize);
+                    GameEntity ghost = new GameEntity(orangeGhostImage, x, y, tileSize, tileSize);
                     ghost.ghostType = GhostType.ORANGE;
                     ghosts.add(ghost);
                 }
                 else if (tileMapChar == 'p') { //pink ghost
-                    Block ghost = new Block(pinkGhostImage, x, y, tileSize, tileSize);
+                    GameEntity ghost = new GameEntity(pinkGhostImage, x, y, tileSize, tileSize);
                     ghost.ghostType = GhostType.PINK;
                     ghosts.add(ghost);
                 }
                 else if (tileMapChar == 'r') { //red ghost
-                    Block ghost = new Block(redGhostImage, x, y, tileSize, tileSize);
+                    GameEntity ghost = new GameEntity(redGhostImage, x, y, tileSize, tileSize);
                     ghost.ghostType = GhostType.RED;
                     ghosts.add(ghost);
                 }
                 else if (tileMapChar == 'P') { //pacman
-                    pacman = new Block(pacmanRightImage, x, y, tileSize, tileSize);
+                    pacman = new GameEntity(pacmanRightImage, x, y, tileSize, tileSize);
                     pacman.direction = 'R';
                 }
                 else if (tileMapChar == 'Q') { //power pellet
-                    Block powerPellet = new Block(powerFoodImage, x + 8, y + 8, tileSize/2, tileSize/2);
+                    GameEntity powerPellet = new GameEntity(powerFoodImage, x + 8, y + 8, tileSize/2, tileSize/2);
                     powerPellets.add(powerPellet);
                 }
                 else if (tileMapChar == ' ') { //food
-                    Block food = new Block(null, x + 14, y + 14, 4, 4);
+                    GameEntity food = new GameEntity(null, x + 14, y + 14, 4, 4);
                     foods.add(food);
                 }
             }
@@ -306,69 +191,8 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
 
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
-        draw(g);
-    }
-
-    public void draw(Graphics g) {
-        g.drawImage(pacman.image, pacman.x, pacman.y, pacman.width, pacman.height, null);
-
-        for (Block ghost : ghosts) {
-            g.drawImage(ghost.image, ghost.x, ghost.y, ghost.width, ghost.height, null);
-        }
-
-        for (Block wall : walls) {
-            g.drawImage(wall.image, wall.x, wall.y, wall.width, wall.height, null);
-        }
-
-        g.setColor(Color.WHITE);
-        for (Block food : foods) {
-            g.fillRect(food.x, food.y, food.width, food.height);
-        }
-
-        for (Block powerPellet : powerPellets) {
-            g.drawImage(powerPellet.image, powerPellet.x, powerPellet.y,
-                    powerPellet.width, powerPellet.height, null);
-        }
-        if (bonusItem != null) {
-            g.drawImage(bonusItem.image, bonusItem.x, bonusItem.y,
-                    bonusItem.width, bonusItem.height, null);
-        }
-        //score and game state
-        g.setFont(new Font("Arial", Font.PLAIN, 18));
-        String gameStatus = buildGameStatus();
-        g.drawString(gameStatus, tileSize/2, tileSize/2);
-
-        if (gameState == GameState.READY) {
-            drawCenteredMessage(g, "Press SPACE to start");
-        }
-        else if (gameState == GameState.PAUSED) {
-            drawCenteredMessage(g, "Paused - Press P to resume");
-        }
-        else if (gameState == GameState.GAME_OVER) {
-            drawCenteredMessage(g, "Game Over: " + score + " - Press R to restart");
-        }
-    }
-
-    String buildGameStatus() {
-        String gameStatus = "Level " + level + "  x" + lives + " Score: " + score +
-                " High: " + highScore;
-        if (powerModeTimeRemaining > 0) {
-            int secondsRemaining = (powerModeTimeRemaining + 999)/1000;
-            gameStatus += " Power: " + secondsRemaining + "s";
-        }
-        if (soundManager.isMuted()) {
-            gameStatus += " Muted";
-        }
-        return gameStatus;
-    }
-
-    private void drawCenteredMessage(Graphics g, String message) {
-        g.setFont(new Font("Arial", Font.BOLD, 20));
-        FontMetrics metrics = g.getFontMetrics();
-        int x = (boardWidth - metrics.stringWidth(message))/2;
-        int y = boardHeight/2;
-        g.setColor(Color.YELLOW);
-        g.drawString(message, x, y);
+        renderer.draw(g, pacman, ghosts, walls, foods, powerPellets, bonusItem,
+                session, powerModeTimeRemaining, soundManager.isMuted());
     }
 
     public void move() {
@@ -382,7 +206,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         wrapThroughTunnel(pacman);
 
         //check wall collisions
-        for (Block wall : walls) {
+        for (GameEntity wall : walls) {
             if (collision(pacman, wall)) {
                 pacman.x -= pacman.velocityX;
                 pacman.y -= pacman.velocityY;
@@ -392,16 +216,16 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
 
         //check ghost collisions
         boolean moveGhostsThisFrame = shouldMoveGhosts();
-        for (Block ghost : ghosts) {
+        for (GameEntity ghost : ghosts) {
             if (collision(ghost, pacman)) {
                 if (ghost.frightened) {
                     eatGhost(ghost);
                     continue;
                 }
                 else if (!ghost.eatenDuringPowerMode || powerModeTimeRemaining == 0) {
-                    lives -= 1;
-                    if (lives == 0) {
-                        gameState = GameState.GAME_OVER;
+                    session.lives -= 1;
+                    if (session.lives == 0) {
+                        session.state = GameState.GAME_OVER;
                         soundManager.playEffect(SoundManager.SoundEffect.GAME_OVER);
                         soundManager.setBackgroundPlaying(false);
                         return;
@@ -419,7 +243,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             ghost.x += ghost.velocityX;
             ghost.y += ghost.velocityY;
             wrapThroughTunnel(ghost);
-            for (Block wall : walls) {
+            for (GameEntity wall : walls) {
                 if (collision(ghost, wall) || hitsHorizontalBoundaryOutsideTunnel(ghost)) {
                     ghost.x -= ghost.velocityX;
                     ghost.y -= ghost.velocityY;
@@ -430,8 +254,8 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         }
 
         //check food collision
-        Block foodEaten = null;
-        for (Block food : foods) {
+        GameEntity foodEaten = null;
+        for (GameEntity food : foods) {
             if (collision(pacman, food)) {
                 foodEaten = food;
                 addScore(10);
@@ -443,8 +267,8 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             recordPelletCollected();
         }
 
-        Block powerPelletEaten = null;
-        for (Block powerPellet : powerPellets) {
+        GameEntity powerPelletEaten = null;
+        for (GameEntity powerPellet : powerPellets) {
             if (collision(pacman, powerPellet)) {
                 powerPelletEaten = powerPellet;
                 addScore(50);
@@ -466,7 +290,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
 
         if (foods.isEmpty() && powerPellets.isEmpty()) {
             soundManager.playEffect(SoundManager.SoundEffect.LEVEL_COMPLETE);
-            level += 1;
+            session.level += 1;
             applyLevelDifficulty();
             loadMap();
             resetPositions();
@@ -474,18 +298,18 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     }
 
     private void applyLevelDifficulty() {
-        int completedLevels = Math.max(0, level - 1);
+        int completedLevels = Math.max(0, session.level - 1);
         powerModeDuration = Math.max(minimumPowerModeDuration, 7000 - completedLevels*500);
         scatterModeDuration = Math.max(minimumScatterModeDuration, 7000 - completedLevels*500);
         chaseModeDuration = Math.min(maximumChaseModeDuration, 20000 + completedLevels*1000);
     }
 
     private void addScore(int points) {
-        score += points;
-        if (score > highScore) {
-            highScore = score;
+        session.score += points;
+        if (session.score > session.highScore) {
+            session.highScore = session.score;
             try {
-                highScoreStore.save(highScore);
+                highScoreStore.save(session.highScore);
             }
             catch (RuntimeException exception) {
                 // Keep the session high score when local persistence is unavailable.
@@ -526,7 +350,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     }
 
     private void spawnBonusItem(Image image, int scoreValue) {
-        bonusItem = new Block(image, tileSize*9, tileSize*11, tileSize, tileSize);
+        bonusItem = new GameEntity(image, tileSize*9, tileSize*11, tileSize, tileSize);
         bonusItemScore = scoreValue;
         bonusItemTimeRemaining = bonusItemDuration;
     }
@@ -569,7 +393,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         return ghostMovementFrame != 0;
     }
 
-    private void updateGhostDirectionAtIntersection(Block ghost) {
+    private void updateGhostDirectionAtIntersection(GameEntity ghost) {
         if (!isTileAligned(ghost)) {
             return;
         }
@@ -585,7 +409,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         setGhostDirection(ghost, chooseGhostDirection(ghost));
     }
 
-    private char chooseGhostDirection(Block ghost) {
+    private char chooseGhostDirection(GameEntity ghost) {
         List<Character> validDirections = getValidGhostDirections(ghost);
         if (validDirections.isEmpty()) {
             return ghost.direction;
@@ -617,7 +441,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         return bestDirection;
     }
 
-    private List<Character> getValidGhostDirections(Block ghost) {
+    private List<Character> getValidGhostDirections(GameEntity ghost) {
         char[] directionPriority = {'U', 'L', 'D', 'R'};
         List<Character> validDirections = new ArrayList<>();
         for (char direction : directionPriority) {
@@ -628,7 +452,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         return validDirections;
     }
 
-    private boolean canMove(Block block, char direction) {
+    private boolean canMove(GameEntity block, char direction) {
         boolean outsideTunnel = block.x < 0 || block.x + block.width > boardWidth;
         if (outsideTunnel && direction != 'L' && direction != 'R') {
             return false;
@@ -642,7 +466,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
 
         boolean blocked = hitsHorizontalBoundaryOutsideTunnel(block);
         if (!blocked) {
-            for (Block wall : walls) {
+            for (GameEntity wall : walls) {
                 if (collision(block, wall)) {
                     blocked = true;
                     break;
@@ -655,7 +479,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         return !blocked;
     }
 
-    private int[] getGhostTarget(Block ghost) {
+    private int[] getGhostTarget(GameEntity ghost) {
         if (ghostMode == GhostMode.SCATTER) {
             return getScatterTarget(ghost.ghostType);
         }
@@ -668,7 +492,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         }
         if (ghost.ghostType == GhostType.BLUE) {
             int[] aheadTarget = getPacmanAheadTarget(2);
-            Block redGhost = findGhost(GhostType.RED);
+            GameEntity redGhost = findGhost(GhostType.RED);
             if (redGhost == null) {
                 return aheadTarget;
             }
@@ -707,8 +531,8 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         };
     }
 
-    private Block findGhost(GhostType ghostType) {
-        for (Block ghost : ghosts) {
+    private GameEntity findGhost(GhostType ghostType) {
+        for (GameEntity ghost : ghosts) {
             if (ghost.ghostType == ghostType) {
                 return ghost;
             }
@@ -716,13 +540,12 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         return null;
     }
 
-    private boolean isTileAligned(Block block) {
+    private boolean isTileAligned(GameEntity block) {
         return block.x%tileSize == 0 && block.y%tileSize == 0;
     }
 
-    private void setGhostDirection(Block ghost, char direction) {
-        ghost.direction = direction;
-        ghost.updateVelocity();
+    private void setGhostDirection(GameEntity ghost, char direction) {
+        ghost.updateDirection(direction);
     }
 
     private char reverseDirection(char direction) {
@@ -760,14 +583,14 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         ghostsEatenThisPowerMode = 0;
         frightenedGhostsShowScared = true;
         frightenedFlashTime = 0;
-        for (Block ghost : ghosts) {
+        for (GameEntity ghost : ghosts) {
             ghost.frightened = frightened;
             ghost.eatenDuringPowerMode = false;
             ghost.image = frightened ? scaredGhostImage : ghost.normalImage;
         }
     }
 
-    private void eatGhost(Block ghost) {
+    private void eatGhost(GameEntity ghost) {
         int bonusMultiplier = 1 << Math.min(ghostsEatenThisPowerMode, 3);
         addScore(200*bonusMultiplier);
         ghostsEatenThisPowerMode += 1;
@@ -817,14 +640,14 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             }
         }
 
-        for (Block ghost : ghosts) {
+        for (GameEntity ghost : ghosts) {
             if (ghost.frightened) {
                 ghost.image = frightenedGhostsShowScared ? scaredGhostImage : ghost.normalImage;
             }
         }
     }
 
-    private void wrapThroughTunnel(Block block) {
+    private void wrapThroughTunnel(GameEntity block) {
         if (block.y != tunnelRow*tileSize) {
             return;
         }
@@ -837,20 +660,18 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         }
     }
 
-    private boolean hitsHorizontalBoundaryOutsideTunnel(Block block) {
+    private boolean hitsHorizontalBoundaryOutsideTunnel(GameEntity block) {
         return block.y != tunnelRow*tileSize &&
                 (block.x <= 0 || block.x + block.width >= boardWidth);
     }
 
     private void resetGame() {
         soundManager.setBackgroundPlaying(false);
-        level = 1;
+        session.level = 1;
         applyLevelDifficulty();
         loadMap();
         resetPositions();
-        lives = 3;
-        score = 0;
-        gameState = GameState.READY;
+        session.resetRun();
     }
 
     private void applyRequestedDirection() {
@@ -860,13 +681,21 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
 
         int previousX = pacman.x;
         int previousY = pacman.y;
+        char previousDirection = pacman.direction;
         pacman.updateDirection(requestedDirection);
+        pacman.x += pacman.velocityX;
+        pacman.y += pacman.velocityY;
+        for (GameEntity wall : walls) {
+            if (collision(pacman, wall)) {
+                pacman.x = previousX;
+                pacman.y = previousY;
+                pacman.updateDirection(previousDirection);
+                return;
+            }
+        }
         pacman.x = previousX;
         pacman.y = previousY;
-
-        if (pacman.direction == requestedDirection) {
-            updatePacmanImage();
-        }
+        updatePacmanImage();
     }
 
     private void updatePacmanImage() {
@@ -884,7 +713,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         return pacmanRightImage;
     }
 
-    public boolean collision(Block a, Block b) {
+    public boolean collision(GameEntity a, GameEntity b) {
         return  a.x < b.x + b.width &&
                 a.x + a.width > b.x &&
                 a.y < b.y + b.height &&
@@ -904,7 +733,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         ghostMode = GhostMode.SCATTER;
         ghostModeTimeRemaining = scatterModeDuration;
         ghostMovementFrame = 0;
-        for (Block ghost : ghosts) {
+        for (GameEntity ghost : ghosts) {
             ghost.reset();
             char newDirection = directions[random.nextInt(4)];
             setGhostDirection(ghost, newDirection);
@@ -913,7 +742,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        if (gameState == GameState.PLAYING) {
+        if (session.state == GameState.PLAYING) {
             int previousPacmanX = pacman.x;
             int previousPacmanY = pacman.y;
             move();
@@ -923,60 +752,53 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         repaint();
     }
 
-    @Override
-    public void keyTyped(KeyEvent e) {}
-
-    @Override
-    public void keyPressed(KeyEvent e) {
-        if (e.getKeyCode() == KeyEvent.VK_M) {
+    private void handleInput(InputController.Command command) {
+        if (command == InputController.Command.TOGGLE_MUTE) {
             soundManager.toggleMute();
             return;
         }
 
-        if (e.getKeyCode() == KeyEvent.VK_R) {
+        if (command == InputController.Command.RESTART) {
             resetGame();
             return;
         }
 
-        if (e.getKeyCode() == KeyEvent.VK_P) {
-            if (gameState == GameState.PLAYING) {
-                gameState = GameState.PAUSED;
+        if (command == InputController.Command.PAUSE) {
+            if (session.state == GameState.PLAYING) {
+                session.state = GameState.PAUSED;
                 soundManager.setBackgroundPlaying(false);
             }
-            else if (gameState == GameState.PAUSED) {
-                gameState = GameState.PLAYING;
+            else if (session.state == GameState.PAUSED) {
+                session.state = GameState.PLAYING;
                 soundManager.setBackgroundPlaying(true);
             }
             return;
         }
 
-        if (gameState == GameState.READY) {
-            if (e.getKeyCode() == KeyEvent.VK_SPACE) {
-                gameState = GameState.PLAYING;
+        if (session.state == GameState.READY) {
+            if (command == InputController.Command.START) {
+                session.state = GameState.PLAYING;
                 soundManager.playEffect(SoundManager.SoundEffect.START);
                 soundManager.setBackgroundPlaying(true);
             }
             return;
         }
 
-        if (gameState != GameState.PLAYING) {
+        if (session.state != GameState.PLAYING) {
             return;
         }
 
-        if (e.getKeyCode() == KeyEvent.VK_UP) {
+        if (command == InputController.Command.MOVE_UP) {
             requestedDirection = 'U';
         }
-        else if (e.getKeyCode() == KeyEvent.VK_DOWN) {
+        else if (command == InputController.Command.MOVE_DOWN) {
             requestedDirection = 'D';
         }
-        else if (e.getKeyCode() == KeyEvent.VK_LEFT) {
+        else if (command == InputController.Command.MOVE_LEFT) {
             requestedDirection = 'L';
         }
-        else if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
+        else if (command == InputController.Command.MOVE_RIGHT) {
             requestedDirection = 'R';
         }
     }
-
-    @Override
-    public void keyReleased(KeyEvent e) {}
 }
