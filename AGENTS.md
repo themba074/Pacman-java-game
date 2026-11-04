@@ -75,6 +75,7 @@ Follow these steps for every feature, bug fix, refactor, or gameplay change:
 - `pacman2/src/Main.java` creates the Swing window and starts the game.
 - `pacman2/src/PacMan.java` coordinates gameplay and the Swing game loop.
 - `pacman2/src/GameSession.java`, `MazeMap.java`, `GameEntity.java`, `InputController.java`, and `GameRenderer.java` contain focused state, map, entity, input, and rendering responsibilities.
+- `pacman2/test/` contains headless JUnit tests for non-visual game rules.
 - `pacman2/src/*.png` contains the game artwork.
 - `pacman2/target/` is generated Maven build output and should not be edited manually.
 - `pacman2/pom.xml` is the Maven build configuration.
@@ -126,7 +127,7 @@ Implement the following features in order unless the user explicitly approves a 
 14. **Code structure refactor — completed**
     - Separate game state, map data, entities, input, and rendering into focused classes.
     - Preserve gameplay while restructuring and avoid combining this with a new player-facing feature.
-15. **Automated tests**
+15. **Automated tests — completed**
     - Add tests for collision detection, scoring, map loading, state transitions, and other non-visual rules.
 
 When one item is complete, mark it complete in this roadmap and in `README.md`, then propose the next incomplete item. Do not start the next item automatically.
